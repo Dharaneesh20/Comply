@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, LogIn, AlertCircle, UserCheck } from 'lucide-react';
+import { ShieldCheck, AlertCircle, UserCheck, ArrowRight } from 'lucide-react';
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [error, setError]         = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { setAuthData, refreshOrganizations } = useAuth();
@@ -16,18 +16,13 @@ export const Login: React.FC = () => {
   const handleLogin = async (loginEmail: string, loginPass: string) => {
     setError(null);
     setIsSubmitting(true);
-
     try {
-      const response = await loginUser({ 
-        email: loginEmail.trim(), 
-        password: loginPass 
-      });
+      const response = await loginUser({ email: loginEmail.trim(), password: loginPass });
       setAuthData(response.token, response.user);
       await refreshOrganizations();
       navigate('/dashboard');
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Invalid email or password. Please check your credentials or register a new account.';
-      setError(msg);
+      setError(err.response?.data?.message || 'Invalid email or password.');
     } finally {
       setIsSubmitting(false);
     }
@@ -45,80 +40,139 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)', padding: '1.5rem' }}>
-      <div className="card" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem 2rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', padding: '0.75rem', borderRadius: '50%', background: 'rgba(6, 182, 212, 0.1)', color: 'var(--accent-cyan)', marginBottom: '1rem' }}>
-            <ShieldCheck size={36} />
+    <div className="auth-shell">
+      {/* Left branding panel */}
+      <div className="auth-left">
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-12)' }}>
+            <div className="sidebar-brand-icon" style={{ width: 36, height: 36, fontSize: 'var(--text-lg)' }}>A</div>
+            <span style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', letterSpacing: 'var(--tracking-tight)' }}>
+              Align
+            </span>
           </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>Welcome to Align</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-            Regulatory & SOP Compliance Intelligence Platform
+
+          <h2 style={{
+            fontSize: 'var(--text-4xl)',
+            fontWeight: 'var(--weight-bold)',
+            color: 'var(--text-primary)',
+            letterSpacing: 'var(--tracking-tight)',
+            lineHeight: 'var(--leading-tight)',
+            marginBottom: 'var(--space-4)',
+          }}>
+            Compliance intelligence,<br />
+            without the complexity.
+          </h2>
+          <p style={{ fontSize: 'var(--text-lg)', color: 'var(--text-secondary)', lineHeight: 'var(--leading-relaxed)', maxWidth: 420 }}>
+            Map regulations to procedures, surface gaps before audits, and keep your team in sync — all in one workspace.
           </p>
         </div>
 
-        {error && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', color: '#fb7185', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input
-              type="email"
-              required
-              className="form-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@organization.com"
-            />
-          </div>
-
-          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              required
-              className="form-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn btn-primary"
-            style={{ width: '100%', padding: '0.85rem' }}
-          >
-            <LogIn size={18} />
-            <span>{isSubmitting ? 'Authenticating...' : 'Sign In'}</span>
-          </button>
-        </form>
-
-        {/* Demo Quick Login Helper */}
-        <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleFillDemo}
-            disabled={isSubmitting}
-            style={{ width: '100%', fontSize: '0.85rem' }}
-          >
-            <UserCheck size={16} color="var(--accent-cyan)" />
-            <span>Quick Login with Demo Admin Account</span>
-          </button>
+        {/* Feature list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          {[
+            'Automated SOP compliance mapping',
+            'AI-assisted gap analysis',
+            'Immutable audit trail',
+            'Role-based access control',
+          ].map(f => (
+            <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+              <ShieldCheck size={16} color="var(--color-accent)" style={{ flexShrink: 0 }} />
+              <span>{f}</span>
+            </div>
+          ))}
         </div>
+      </div>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-          Don't have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--accent-cyan)', fontWeight: 600, textDecoration: 'none' }}>
-            Register Now
-          </Link>
+      {/* Right form panel */}
+      <div className="auth-right">
+        <div className="auth-card">
+          <div style={{ marginBottom: 'var(--space-8)' }}>
+            <h1 style={{
+              fontSize: 'var(--text-2xl)',
+              fontWeight: 'var(--weight-bold)',
+              color: 'var(--text-primary)',
+              letterSpacing: 'var(--tracking-tight)',
+              marginBottom: 'var(--space-1)',
+            }}>
+              Sign in
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+              Welcome back to Align
+            </p>
+          </div>
+
+          {error && (
+            <div className="alert alert-error" style={{ marginBottom: 'var(--space-5)' }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                type="email"
+                required
+                autoComplete="email"
+                className="form-input"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@organization.com"
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" htmlFor="login-password">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                required
+                autoComplete="current-password"
+                className="form-input"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button
+              id="sign-in-btn"
+              type="submit"
+              disabled={isSubmitting}
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '10px', marginTop: 'var(--space-2)' }}
+            >
+              {isSubmitting ? 'Signing in…' : 'Sign in'}
+              {!isSubmitting && <ArrowRight size={15} />}
+            </button>
+          </form>
+
+          <div style={{
+            marginTop: 'var(--space-4)',
+            paddingTop: 'var(--space-4)',
+            borderTop: '1px solid var(--border)',
+          }}>
+            <button
+              type="button"
+              id="demo-login-btn"
+              className="btn btn-secondary"
+              onClick={handleFillDemo}
+              disabled={isSubmitting}
+              style={{ width: '100%' }}
+            >
+              <UserCheck size={15} color="var(--color-accent)" />
+              <span>Sign in with demo account</span>
+            </button>
+          </div>
+
+          <p style={{ marginTop: 'var(--space-6)', textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+            Don't have an account?{' '}
+            <Link to="/register" style={{ color: 'var(--text-link)', fontWeight: 'var(--weight-medium)' }}>
+              Create one
+            </Link>
+          </p>
         </div>
       </div>
     </div>

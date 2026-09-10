@@ -3,267 +3,248 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getSOPs } from '../api/sops';
 import { SOP, SOPStatus } from '../types/sop';
-import { 
-  FileText, 
-  Plus, 
-  Search, 
-  Filter, 
-  Calendar, 
-  Building2, 
-  ArrowRight, 
-  Loader2,
-  Clock,
+import {
+  FileText,
+  Plus,
+  Search,
+  Calendar,
+  Building2,
+  ArrowRight,
   CheckCircle2,
+  Clock,
+  Archive,
   AlertCircle,
-  Archive
 } from 'lucide-react';
+
+function StatusBadge({ status }: { status: SOPStatus }) {
+  const map: Record<SOPStatus, { cls: string; label: string; icon: React.ReactNode }> = {
+    PUBLISHED: { cls: 'badge-success', label: 'Published',  icon: <CheckCircle2 size={11} /> },
+    DRAFT:     { cls: 'badge-warning', label: 'Draft',      icon: <Clock        size={11} /> },
+    ARCHIVED:  { cls: 'badge-neutral', label: 'Archived',   icon: <Archive      size={11} /> },
+  };
+  const cfg = map[status] ?? { cls: 'badge-neutral', label: status, icon: null };
+  return <span className={`badge ${cfg.cls}`}>{cfg.icon}{cfg.label}</span>;
+}
+
+const SkeletonRow: React.FC = () => (
+  <tr>
+    {[1,2,3,4,5,6].map(i => (
+      <td key={i} style={{ padding: 'var(--space-4)' }}>
+        <div className="skeleton skeleton-text" style={{ width: i === 1 ? '70%' : '50%' }} />
+      </td>
+    ))}
+  </tr>
+);
 
 export const SOPsList: React.FC = () => {
   const navigate = useNavigate();
   const { currentOrganization } = useAuth();
 
-  const [sops, setSops] = useState<SOP[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [sops, setSops]               = useState<SOP[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState<string | null>(null);
+  const [searchTerm, setSearchTerm]   = useState('');
+  const [selectedDept, setSelectedDept]     = useState('ALL');
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
 
-  // Search & Filters
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL');
-  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
-
-  const fetchSOPsList = async () => {
+  const fetchSOPs = async () => {
     if (!currentOrganization) return;
     try {
       setLoading(true);
       setError(null);
-      const statusParam = selectedStatus !== 'ALL' ? selectedStatus : undefined;
-      const deptParam = selectedDepartment !== 'ALL' ? selectedDepartment : undefined;
-      const data = await getSOPs(currentOrganization.id, statusParam, deptParam);
+      const data = await getSOPs(
+        currentOrganization.id,
+        selectedStatus !== 'ALL' ? selectedStatus : undefined,
+        selectedDept   !== 'ALL' ? selectedDept   : undefined,
+      );
       setSops(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch SOPs');
+      setError(err.response?.data?.message || 'Failed to load SOPs.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSOPsList();
-  }, [currentOrganization, selectedDepartment, selectedStatus]);
+  useEffect(() => { fetchSOPs(); }, [currentOrganization, selectedDept, selectedStatus]);
 
-  // Client side search filtering
-  const filteredSops = sops.filter((sop) => {
-    const matchesSearch = 
-      sop.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (sop.description && sop.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      sop.department.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredSops = sops.filter(s =>
+    s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.department.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Extract unique departments for dropdown filter
-  const uniqueDepartments = Array.from(new Set(sops.map((s) => s.department))).filter(Boolean);
-
-  const getStatusBadge = (status: SOPStatus) => {
-    switch (status) {
-      case 'PUBLISHED':
-        return (
-          <span className="status-badge published">
-            <CheckCircle2 size={12} /> Published
-          </span>
-        );
-      case 'DRAFT':
-        return (
-          <span className="status-badge draft">
-            <Clock size={12} /> Draft
-          </span>
-        );
-      case 'ARCHIVED':
-        return (
-          <span className="status-badge archived">
-            <Archive size={12} /> Archived
-          </span>
-        );
-      default:
-        return <span className="status-badge">{status}</span>;
-    }
-  };
+  const departments = Array.from(new Set(sops.map(s => s.department))).filter(Boolean);
 
   return (
     <div>
-      {/* Header Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, background: 'linear-gradient(to right, #ffffff, #93c5fd)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Standard Operating Procedures
-            </h2>
-            <span style={{ background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700 }}>
-              {sops.length} SOPs
-            </span>
+      {/* Page header */}
+      <div className="page-header">
+        <div className="page-header-inner">
+          <div className="page-header-text">
+            <h2 className="page-title">Standard Operating Procedures</h2>
+            <p className="page-subtitle">
+              Manage, version, and review operational policy documentation
+              {currentOrganization ? ` for ${currentOrganization.name}` : ''}.
+            </p>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Manage, version, and review operational policy documentation for {currentOrganization?.name || 'your workspace'}.
-          </p>
-        </div>
-
-        <button className="btn btn-primary" onClick={() => navigate('/sops/new')}>
-          <Plus size={18} />
-          <span>Create New SOP</span>
-        </button>
-      </div>
-
-      {/* Controls Bar: Search & Filters */}
-      <div className="card" style={{ padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          
-          {/* Search Box */}
-          <div style={{ position: 'relative', flex: '1', minWidth: '260px' }}>
-            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Search SOP title, description, department..."
-              style={{ paddingLeft: '2.5rem' }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          {/* Filters */}
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Department Filter */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Filter size={16} style={{ color: 'var(--text-muted)' }} />
-              <select
-                className="form-select"
-                style={{ width: 'auto', minWidth: '160px' }}
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-              >
-                <option value="ALL">All Departments</option>
-                {uniqueDepartments.map((dept) => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <select
-                className="form-select"
-                style={{ width: 'auto', minWidth: '140px' }}
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="PUBLISHED">Published</option>
-                <option value="DRAFT">Draft</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
-            </div>
+          <div className="page-header-actions">
+            <button className="btn btn-primary" onClick={() => navigate('/sops/new')} id="create-sop-btn">
+              <Plus size={15} />
+              New SOP
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Filter bar */}
+      <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
+        {/* Search */}
+        <div className="search-wrap" style={{ flex: '1', minWidth: 240 }}>
+          <Search size={15} className="search-icon" />
+          <input
+            className="search-input"
+            placeholder="Search SOPs…"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            aria-label="Search SOPs"
+          />
+        </div>
+
+        {/* Department filter */}
+        <select
+          className="form-select"
+          style={{ width: 'auto', minWidth: 160 }}
+          value={selectedDept}
+          onChange={e => setSelectedDept(e.target.value)}
+          aria-label="Filter by department"
+        >
+          <option value="ALL">All departments</option>
+          {departments.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+
+        {/* Status filter */}
+        <select
+          className="form-select"
+          style={{ width: 'auto', minWidth: 140 }}
+          value={selectedStatus}
+          onChange={e => setSelectedStatus(e.target.value)}
+          aria-label="Filter by status"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="PUBLISHED">Published</option>
+          <option value="DRAFT">Draft</option>
+          <option value="ARCHIVED">Archived</option>
+        </select>
+
+        {!loading && (
+          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+            {filteredSops.length} {filteredSops.length === 1 ? 'SOP' : 'SOPs'}
+          </span>
+        )}
+      </div>
+
+      {/* Error */}
       {error && (
-        <div style={{ padding: '1rem', background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: 'var(--radius-sm)', color: '#fb7185', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <AlertCircle size={18} />
+        <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }}>
+          <AlertCircle size={15} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Table Content */}
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4rem' }}>
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent-cyan)' }} />
-        </div>
-      ) : filteredSops.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <FileText size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>No SOP Documents Found</h3>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto 1.5rem auto' }}>
-            {searchTerm || selectedDepartment !== 'ALL' || selectedStatus !== 'ALL'
-              ? 'No SOPs match your active search filters.'
-              : 'Create your first Standard Operating Procedure document to begin tracking compliance.'}
-          </p>
-          <button className="btn btn-primary" onClick={() => navigate('/sops/new')}>
-            <Plus size={18} />
-            <span>Create First SOP</span>
-          </button>
+      {/* Content */}
+      {!loading && filteredSops.length === 0 ? (
+        <div className="card">
+          <div className="empty-state">
+            <FileText size={36} className="empty-state-icon" />
+            <h3 className="empty-state-title">No SOPs found</h3>
+            <p className="empty-state-description">
+              {searchTerm || selectedDept !== 'ALL' || selectedStatus !== 'ALL'
+                ? 'No SOPs match your current filters. Try adjusting your search.'
+                : 'Create your first Standard Operating Procedure to begin tracking compliance.'}
+            </p>
+            {!searchTerm && (
+              <button className="btn btn-primary" onClick={() => navigate('/sops/new')}>
+                <Plus size={15} />
+                Create first SOP
+              </button>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="table-container">
-          <table className="custom-table">
+        <div className="table-wrap">
+          <table className="align-table">
             <thead>
               <tr>
-                <th>SOP Document Details</th>
+                <th>Document</th>
                 <th>Department</th>
                 <th>Version</th>
                 <th>Status</th>
-                <th>Next Review Date</th>
-                <th>Last Updated</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
+                <th>Next review</th>
+                <th>Updated</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredSops.map((sop) => (
-                <tr key={sop.id}>
-                  <td>
-                    <div>
-                      <div 
+              {loading
+                ? [1,2,3,4,5].map(i => <SkeletonRow key={i} />)
+                : filteredSops.map(sop => (
+                  <tr key={sop.id}>
+                    <td>
+                      <div
                         onClick={() => navigate(`/sops/${sop.id}`)}
-                        style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        style={{ cursor: 'pointer' }}
                       >
-                        <FileText size={16} color="var(--accent-cyan)" />
-                        <span>{sop.title}</span>
-                      </div>
-                      {sop.description && (
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.2rem', maxWidth: '380px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {sop.description}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontWeight: 'var(--weight-medium)', color: 'var(--text-primary)', fontSize: 'var(--text-sm)' }}>
+                          <FileText size={14} color="var(--color-accent)" style={{ flexShrink: 0 }} />
+                          {sop.title}
                         </div>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem' }}>
-                      <Building2 size={14} color="var(--accent-blue)" />
-                      {sop.department}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#a5b4fc', padding: '0.2rem 0.5rem', borderRadius: '6px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 700 }}>
-                      v{sop.currentVersion || 1}
-                    </span>
-                  </td>
-                  <td>{getStatusBadge(sop.status)}</td>
-                  <td>
-                    {sop.nextReviewAt ? (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        <Calendar size={14} color="var(--accent-amber)" />
-                        {new Date(sop.nextReviewAt).toLocaleDateString()}
+                        {sop.description && (
+                          <div className="truncate" style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', marginTop: 2, maxWidth: 360, marginLeft: 22 }}>
+                            {sop.description}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                        <Building2 size={13} color="var(--text-muted)" />
+                        {sop.department}
                       </span>
-                    ) : (
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Not scheduled</span>
-                    )}
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      {new Date(sop.updatedAt).toLocaleDateString()}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button 
-                      className="btn btn-secondary"
-                      style={{ padding: '0.4rem 0.85rem', fontSize: '0.825rem' }}
-                      onClick={() => navigate(`/sops/${sop.id}`)}
-                    >
-                      <span>View SOP</span>
-                      <ArrowRight size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', background: 'var(--bg-surface-raised)', padding: '2px 6px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border)' }}>
+                        v{sop.currentVersion || 1}
+                      </span>
+                    </td>
+                    <td><StatusBadge status={sop.status} /></td>
+                    <td>
+                      {sop.nextReviewAt ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                          <Calendar size={13} color="var(--color-warning)" />
+                          {new Date(sop.nextReviewAt).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>Not scheduled</span>
+                      )}
+                    </td>
+                    <td>
+                      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                        {new Date(sop.updatedAt).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td className="text-right">
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => navigate(`/sops/${sop.id}`)}
+                        aria-label={`View ${sop.title}`}
+                      >
+                        View
+                        <ArrowRight size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              }
             </tbody>
           </table>
         </div>

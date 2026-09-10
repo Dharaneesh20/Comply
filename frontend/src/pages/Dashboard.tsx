@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConnectionState, HealthStatusResponse } from '../types';
-import { HealthBadge } from '../components/HealthBadge';
+
 import { useAuth } from '../context/AuthContext';
 import { getSOPMetrics } from '../api/sops';
 import { getRegulationMetrics } from '../api/regulations';
@@ -9,15 +9,15 @@ import { getFindingMetrics } from '../api/findings';
 import { SOPMetricsResponse } from '../types/sop';
 import { RegulationMetricsResponse } from '../types/regulation';
 import { FindingMetricsResponse } from '../types/finding';
-import { 
-  Server, 
-  FileText, 
+import {
+  FileText,
   ShieldCheck,
   ListChecks,
   AlertTriangle,
-  Building2, 
-  Plus, 
-  ArrowRight
+  Plus,
+  ArrowRight,
+  Server,
+  Database,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -26,238 +26,289 @@ interface DashboardProps {
   lastChecked: Date | null;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ healthState, healthData, lastChecked }) => {
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+const MetricCard: React.FC<{
+  label: string;
+  value: number | string;
+  sub?: string;
+  icon: React.ReactNode;
+  iconColor: string;
+  onClick?: () => void;
+}> = ({ label, value, sub, icon, iconColor, onClick }) => (
+  <div
+    className="metric-card"
+    onClick={onClick}
+    style={{ cursor: onClick ? 'pointer' : 'default' }}
+    role={onClick ? 'button' : undefined}
+    tabIndex={onClick ? 0 : undefined}
+    onKeyDown={onClick ? e => e.key === 'Enter' && onClick() : undefined}
+    aria-label={`${label}: ${value}`}
+  >
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <span className="metric-label">{label}</span>
+      <span style={{ color: iconColor, opacity: 0.8 }}>{icon}</span>
+    </div>
+    <div className="metric-value">{value}</div>
+    {sub && (
+      <div className="metric-sub">
+        <span>{sub}</span>
+        {onClick && <ArrowRight size={12} color="var(--text-muted)" style={{ marginLeft: 'auto' }} />}
+      </div>
+    )}
+  </div>
+);
+
+const SkeletonMetric: React.FC = () => (
+  <div className="metric-card" style={{ gap: 'var(--space-3)' }}>
+    <div className="skeleton skeleton-text" style={{ width: '40%' }} />
+    <div className="skeleton" style={{ height: 36, width: '60%', borderRadius: 'var(--radius-xs)' }} />
+    <div className="skeleton skeleton-text" style={{ width: '70%' }} />
+  </div>
+);
+
+export const Dashboard: React.FC<DashboardProps> = ({ healthData, lastChecked }) => {
+
   const { currentOrganization, user } = useAuth();
   const navigate = useNavigate();
   const isMongoConnected = healthData?.database === 'UP';
 
-  const [sopMetrics, setSopMetrics] = useState<SOPMetricsResponse | null>(null);
-  const [regMetrics, setRegMetrics] = useState<RegulationMetricsResponse | null>(null);
+  const [sopMetrics, setSopMetrics]       = useState<SOPMetricsResponse | null>(null);
+  const [regMetrics, setRegMetrics]       = useState<RegulationMetricsResponse | null>(null);
   const [findingMetrics, setFindingMetrics] = useState<FindingMetricsResponse | null>(null);
-  const [loadingMetrics, setLoadingMetrics] = useState<boolean>(false);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
 
   useEffect(() => {
-    if (currentOrganization) {
-      setLoadingMetrics(true);
-      Promise.all([
-        getSOPMetrics(currentOrganization.id),
-        getRegulationMetrics(currentOrganization.id),
-        getFindingMetrics(currentOrganization.id),
-      ])
-        .then(([sopData, regData, findData]) => {
-          setSopMetrics(sopData);
-          setRegMetrics(regData);
-          setFindingMetrics(findData);
-        })
-        .catch(() => {
-          setSopMetrics(null);
-          setRegMetrics(null);
-          setFindingMetrics(null);
-        })
-        .finally(() => setLoadingMetrics(false));
-    }
+    if (!currentOrganization) { setLoadingMetrics(false); return; }
+    setLoadingMetrics(true);
+    Promise.all([
+      getSOPMetrics(currentOrganization.id),
+      getRegulationMetrics(currentOrganization.id),
+      getFindingMetrics(currentOrganization.id),
+    ])
+      .then(([sopData, regData, findData]) => {
+        setSopMetrics(sopData);
+        setRegMetrics(regData);
+        setFindingMetrics(findData);
+      })
+      .catch(() => {
+        setSopMetrics(null);
+        setRegMetrics(null);
+        setFindingMetrics(null);
+      })
+      .finally(() => setLoadingMetrics(false));
   }, [currentOrganization]);
+
+  const openFindings    = findingMetrics?.totalOpen    ?? 0;
+  const criticalFindings = findingMetrics?.criticalCount ?? 0;
+  const highFindings    = findingMetrics?.highCount    ?? 0;
+  const urgentCount     = criticalFindings + highFindings;
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.25rem', background: 'linear-gradient(to right, #ffffff, #93c5fd)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            {currentOrganization ? `${currentOrganization.name} Workspace` : 'Compliance Dashboard'}
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            {currentOrganization ? `Organization Workspace: /${currentOrganization.slug} (${currentOrganization.memberRole})` : 'Select or create an organization to get started.'}
-          </p>
-        </div>
-
-        {currentOrganization && (
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button className="btn btn-secondary" onClick={() => navigate('/sops/new')}>
-              <Plus size={16} />
-              <span>Create SOP</span>
-            </button>
-            <button className="btn btn-primary" onClick={() => navigate('/regulations/new')}>
-              <Plus size={16} />
-              <span>Add Regulation</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Real MongoDB Compliance Metrics Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-        
-        {/* Total SOPs */}
-        <div 
-          className="card" 
-          style={{ padding: '1.25rem', cursor: 'pointer' }}
-          onClick={() => navigate('/sops')}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>SOPs</span>
-            <FileText size={20} color="var(--accent-cyan)" />
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            {loadingMetrics ? '...' : sopMetrics?.totalSops ?? 0}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Standard Operating Procedures</span>
-            <ArrowRight size={14} color="var(--accent-cyan)" />
-          </div>
-        </div>
-
-        {/* Regulations */}
-        <div 
-          className="card" 
-          style={{ padding: '1.25rem', cursor: 'pointer' }}
-          onClick={() => navigate('/regulations')}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Regulations</span>
-            <ShieldCheck size={20} color="var(--accent-blue)" />
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--accent-blue)' }}>
-            {loadingMetrics ? '...' : regMetrics?.totalRegulations ?? 0}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Regulatory Frameworks</span>
-            <ArrowRight size={14} color="var(--accent-blue)" />
-          </div>
-        </div>
-
-        {/* Requirements */}
-        <div 
-          className="card" 
-          style={{ padding: '1.25rem', cursor: 'pointer' }}
-          onClick={() => navigate('/regulations')}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Requirements</span>
-            <ListChecks size={20} color="var(--accent-purple)" />
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--accent-purple)' }}>
-            {loadingMetrics ? '...' : regMetrics?.totalRequirements ?? 0}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Extracted Section Clauses</span>
-            <ArrowRight size={14} color="var(--accent-purple)" />
-          </div>
-        </div>
-
-        {/* Open Compliance Findings */}
-        <div 
-          className="card" 
-          style={{ padding: '1.25rem', cursor: 'pointer' }}
-          onClick={() => navigate('/findings')}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Open Findings</span>
-            <AlertTriangle size={20} color="var(--accent-amber)" />
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--accent-amber)' }}>
-            {loadingMetrics ? '...' : findingMetrics?.totalOpen ?? 0}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-            <span style={{ color: '#ef4444', fontWeight: 700 }}>{findingMetrics?.criticalCount ?? 0} Critical</span>
-            <span>•</span>
-            <span style={{ color: '#f43f5e', fontWeight: 700 }}>{findingMetrics?.highCount ?? 0} High</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid-2">
-        {/* Real-time System Status Card */}
-        <div className="card">
-          <div className="card-title">
-            <Server size={20} color="var(--accent-cyan)" />
-            <span>Authenticated System Session</span>
-          </div>
-          <p className="card-subtitle">
-            Authenticated as <code style={{ color: 'var(--accent-cyan)' }}>{user?.email}</code>
-          </p>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-sm)', marginBottom: '1.25rem' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Real-time System Status:</span>
-            <HealthBadge state={healthState} healthData={healthData} showDetails={true} />
+      {/* ── Page header ── */}
+      <div style={{ marginBottom: 'var(--space-8)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-4)' }}>
+          <div>
+            <h2 style={{
+              fontSize: 'var(--text-2xl)',
+              fontWeight: 'var(--weight-bold)',
+              color: 'var(--text-primary)',
+              letterSpacing: 'var(--tracking-tight)',
+              marginBottom: 'var(--space-1)',
+            }}>
+              {getGreeting()}{user?.fullName ? `, ${user.fullName.split(' ')[0]}` : ''}.
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)' }}>
+              {currentOrganization
+                ? `${currentOrganization.name} — compliance overview`
+                : 'Select an organization to view your compliance workspace.'}
+            </p>
           </div>
 
-          {healthData && (
-            <table className="info-table">
-              <tbody>
-                <tr>
-                  <th>User ID</th>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{user?.id}</td>
-                </tr>
-                <tr>
-                  <th>Backend Engine Status</th>
-                  <td>
-                    <span style={{ color: healthData.application === 'UP' ? 'var(--accent-emerald)' : 'var(--accent-rose)', fontWeight: 700 }}>
-                      Backend: {healthData.application === 'UP' ? 'Online' : 'Offline'} ({healthData.application})
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <th>MongoDB Database Link</th>
-                  <td>
-                    <span style={{ color: isMongoConnected ? 'var(--accent-emerald)' : 'var(--accent-rose)', fontWeight: 700 }}>
-                      MongoDB: {isMongoConnected ? 'Connected' : 'Disconnected'} ({healthData.database})
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <th>Last Polled</th>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
-                    {lastChecked ? lastChecked.toLocaleTimeString() : 'N/A'}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Active Workspace Info Card */}
-        <div className="card">
-          <div className="card-title">
-            <Building2 size={20} color="var(--accent-blue)" />
-            <span>Active Workspace Details</span>
-          </div>
-          <p className="card-subtitle">
-            Contextual Organization Workspace
-          </p>
-
-          {currentOrganization ? (
-            <table className="info-table">
-              <tbody>
-                <tr>
-                  <th>Organization Name</th>
-                  <td style={{ fontWeight: 700 }}>{currentOrganization.name}</td>
-                </tr>
-                <tr>
-                  <th>Organization ID</th>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{currentOrganization.id}</td>
-                </tr>
-                <tr>
-                  <th>URL Slug</th>
-                  <td style={{ color: 'var(--accent-cyan)' }}>/{currentOrganization.slug}</td>
-                </tr>
-                <tr>
-                  <th>User Role</th>
-                  <td>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-cyan)' }}>
-                      {currentOrganization.memberRole}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-secondary)' }}>
-              No organization selected. Please create or select an organization in the top menu or Organizations tab.
+          {currentOrganization && (
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0 }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/sops/new')}>
+                <Plus size={14} />
+                New SOP
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={() => navigate('/regulations/new')}>
+                <Plus size={14} />
+                Add Regulation
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* ── Needs attention banner ── */}
+      {!loadingMetrics && urgentCount > 0 && (
+        <div
+          className="alert alert-warning"
+          style={{ marginBottom: 'var(--space-6)', cursor: 'pointer' }}
+          onClick={() => navigate('/findings')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={e => e.key === 'Enter' && navigate('/findings')}
+        >
+          <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+          <div>
+            <strong>Attention required — </strong>
+            {urgentCount} high-priority finding{urgentCount !== 1 ? 's' : ''} need{urgentCount === 1 ? 's' : ''} review
+            ({criticalFindings > 0 ? `${criticalFindings} critical` : ''}{criticalFindings > 0 && highFindings > 0 ? ', ' : ''}{highFindings > 0 ? `${highFindings} high` : ''}).
+          </div>
+          <ArrowRight size={14} style={{ marginLeft: 'auto', flexShrink: 0 }} />
+        </div>
+      )}
+
+      {/* ── Metrics grid ── */}
+      <section style={{ marginBottom: 'var(--space-8)' }}>
+        <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-muted)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', marginBottom: 'var(--space-4)' }}>
+          Compliance overview
+        </h3>
+        <div className="grid-metrics">
+          {loadingMetrics ? (
+            [1,2,3,4].map(i => <SkeletonMetric key={i} />)
+          ) : (
+            <>
+              <MetricCard
+                label="SOPs"
+                value={sopMetrics?.totalSops ?? 0}
+                sub="Standard operating procedures"
+                icon={<FileText size={18} />}
+                iconColor="var(--color-accent)"
+                onClick={() => navigate('/sops')}
+              />
+              <MetricCard
+                label="Regulations"
+                value={regMetrics?.totalRegulations ?? 0}
+                sub="Regulatory frameworks tracked"
+                icon={<ShieldCheck size={18} />}
+                iconColor="var(--color-success)"
+                onClick={() => navigate('/regulations')}
+              />
+              <MetricCard
+                label="Requirements"
+                value={regMetrics?.totalRequirements ?? 0}
+                sub="Extracted clauses and sections"
+                icon={<ListChecks size={18} />}
+                iconColor="var(--color-info)"
+                onClick={() => navigate('/regulations')}
+              />
+              <MetricCard
+                label="Open Findings"
+                value={openFindings}
+                sub={urgentCount > 0 ? `${urgentCount} critical or high` : 'No urgent items'}
+                icon={<AlertTriangle size={18} />}
+                iconColor={urgentCount > 0 ? 'var(--color-danger)' : 'var(--color-warning)'}
+                onClick={() => navigate('/findings')}
+              />
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ── System status + workspace ── */}
+      <section>
+        <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-muted)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', marginBottom: 'var(--space-4)' }}>
+          System status
+        </h3>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-4)' }}>
+          {/* Backend status */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
+              <Server size={16} color="var(--text-secondary)" />
+              <span style={{ fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                Backend
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>API Server</span>
+                <span style={{ color: healthData?.application === 'UP' ? 'var(--color-success-text)' : 'var(--color-danger-text)', fontWeight: 'var(--weight-medium)' }}>
+                  {healthData ? (healthData.application === 'UP' ? 'Operational' : 'Degraded') : '—'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Database</span>
+                <span style={{ color: isMongoConnected ? 'var(--color-success-text)' : 'var(--color-danger-text)', fontWeight: 'var(--weight-medium)' }}>
+                  {healthData ? (isMongoConnected ? 'Connected' : 'Disconnected') : '—'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Last checked</span>
+                <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
+                  {lastChecked ? lastChecked.toLocaleTimeString() : '—'}
+                </span>
+              </div>
+              {user && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Session</span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 'var(--weight-medium)', fontSize: 'var(--text-xs)' }}>
+                    {user.email}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Workspace */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
+              <Database size={16} color="var(--text-secondary)" />
+              <span style={{ fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                Active workspace
+              </span>
+            </div>
+
+            {currentOrganization ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Organization</span>
+                  <span style={{ fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)' }}>
+                    {currentOrganization.name}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Slug</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
+                    /{currentOrganization.slug}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Your role</span>
+                  <span className="badge badge-accent" style={{ fontSize: 'var(--text-xs)' }}>
+                    {currentOrganization.memberRole}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Status</span>
+                  <span className={`badge ${currentOrganization.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: 'var(--text-xs)' }}>
+                    {currentOrganization.status}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state" style={{ padding: 'var(--space-6) 0' }}>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+                  No organization selected.
+                </p>
+                <button className="btn btn-primary btn-sm" onClick={() => navigate('/organizations')}>
+                  <Plus size={14} />
+                  Create organization
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

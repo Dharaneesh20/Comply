@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
 import { fetchHealthStatus } from './api/health';
 import { ConnectionState, HealthStatusResponse } from './types';
 import { MainLayout } from './components/layout/MainLayout';
@@ -21,29 +22,31 @@ import { RemediationsList } from './pages/RemediationsList';
 import { AuditTrail } from './pages/AuditTrail';
 import { SecuritySettings } from './pages/SecuritySettings';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import { Loader2 } from 'lucide-react';
 
+// ── Spinner shown while auth initialises ──────────────────────────────────
+const AuthLoadingScreen: React.FC = () => (
+  <div style={{
+    minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'var(--bg-page)',
+  }}>
+    <Loader2 size={28} style={{ color: 'var(--color-accent)', animation: 'spin 1s linear infinite' }} />
+  </div>
+);
+
+// ── Protected route wrapper ────────────────────────────────────────────────
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, token, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)' }}>
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent-cyan)' }} />
-      </div>
-    );
-  }
-
-  if (!token || !user) {
-    return <Navigate to="/login" replace />;
-  }
-
+  if (isLoading) return <AuthLoadingScreen />;
+  if (!token || !user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
+// ── Main routes ────────────────────────────────────────────────────────────
 const AppRoutes: React.FC = () => {
   const [healthState, setHealthState] = useState<ConnectionState>('checking');
-  const [healthData, setHealthData] = useState<HealthStatusResponse | null>(null);
+  const [healthData,  setHealthData]  = useState<HealthStatusResponse | null>(null);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
   const checkHealth = useCallback(async () => {
@@ -51,201 +54,68 @@ const AppRoutes: React.FC = () => {
       const data = await fetchHealthStatus();
       setHealthData(data);
       setHealthState('online');
-      setLastChecked(new Date());
-    } catch (err) {
+    } catch {
       setHealthData(null);
       setHealthState('offline');
+    } finally {
       setLastChecked(new Date());
     }
   }, []);
 
   useEffect(() => {
     checkHealth();
-    const interval = setInterval(checkHealth, 10000);
+    const interval = setInterval(checkHealth, 10_000);
     return () => clearInterval(interval);
   }, [checkHealth]);
 
+  // Shared layout wrapper
+  const withLayout = (children: React.ReactNode) => (
+    <ProtectedRoute>
+      <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
+        {children}
+      </MainLayout>
+    </ProtectedRoute>
+  );
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      {/* Public */}
+      <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
-      
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <Dashboard healthState={healthState} healthData={healthData} lastChecked={lastChecked} />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
 
-      <Route 
-        path="/organizations" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <OrganizationsPage />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
+      {/* Protected */}
+      <Route path="/dashboard"                element={withLayout(<Dashboard healthState={healthState} healthData={healthData} lastChecked={lastChecked} />)} />
+      <Route path="/organizations"            element={withLayout(<OrganizationsPage />)} />
+      <Route path="/sops"                     element={withLayout(<SOPsList />)} />
+      <Route path="/sops/new"                 element={withLayout(<CreateSOP />)} />
+      <Route path="/sops/:id"                 element={withLayout(<SOPDetails />)} />
+      <Route path="/regulations"              element={withLayout(<RegulationsList />)} />
+      <Route path="/regulations/new"          element={withLayout(<CreateRegulation />)} />
+      <Route path="/regulations/:id"          element={withLayout(<RegulationDetails />)} />
+      <Route path="/findings"                 element={withLayout(<FindingsList />)} />
+      <Route path="/findings/:id"             element={withLayout(<FindingDetails />)} />
+      <Route path="/regulatory-changes"       element={withLayout(<RegulatoryChangesList />)} />
+      <Route path="/regulatory-changes/:id"  element={withLayout(<RegulatoryChangeDetails />)} />
+      <Route path="/remediations"             element={withLayout(<RemediationsList />)} />
+      <Route path="/audit"                    element={withLayout(<AuditTrail />)} />
+      <Route path="/settings/security"        element={withLayout(<SecuritySettings />)} />
 
-      <Route 
-        path="/sops" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <SOPsList />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/sops/new" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <CreateSOP />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/sops/:id" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <SOPDetails />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/regulations" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <RegulationsList />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/regulations/new" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <CreateRegulation />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/regulations/:id" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <RegulationDetails />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/findings" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <FindingsList />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/findings/:id" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <FindingDetails />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/regulatory-changes" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <RegulatoryChangesList />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/regulatory-changes/:id" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <RegulatoryChangeDetails />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/remediations" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <RemediationsList />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/audit" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <AuditTrail />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route 
-        path="/settings/security" 
-        element={
-          <ProtectedRoute>
-            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
-              <SecuritySettings />
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Fallbacks */}
+      <Route path="/"   element={<Navigate to="/dashboard" replace />} />
+      <Route path="*"   element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };
 
+// ── Root ───────────────────────────────────────────────────────────────────
 export const App: React.FC = () => {
+  // Global Ctrl+K listener (before MainLayout mounts; handled inside MainLayout too)
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );

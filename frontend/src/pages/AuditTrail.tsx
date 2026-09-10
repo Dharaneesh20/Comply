@@ -2,31 +2,69 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAuditEvents } from '../api/audit';
 import { AuditEvent } from '../types/audit';
-import { 
-  ShieldAlert, 
-  Filter, 
-  User, 
-  Clock, 
-  Loader2, 
-  AlertCircle, 
-  Database, 
-  ChevronLeft, 
+import {
+  ScrollText,
+  Clock,
+  User,
+  AlertCircle,
+  ChevronLeft,
   ChevronRight,
-  Info
+  Info,
+  LogIn,
+  FilePlus,
+  CheckCircle2,
+  Link2,
+  ShieldAlert,
+  Wrench,
 } from 'lucide-react';
+
+function getActionConfig(action: string): { icon: React.ReactNode; cls: string; label: string } {
+  if (action.includes('LOGIN'))                return { icon: <LogIn size={13} />,        cls: 'badge-success', label: action };
+  if (action.includes('CREATED'))              return { icon: <FilePlus size={13} />,     cls: 'badge-accent',  label: action };
+  if (action.includes('APPROVED') || action.includes('COMPLETED')) return { icon: <CheckCircle2 size={13} />, cls: 'badge-success', label: action };
+  if (action.includes('MAPPING'))              return { icon: <Link2 size={13} />,         cls: 'badge-info',    label: action };
+  if (action.includes('FINDING'))              return { icon: <ShieldAlert size={13} />,  cls: 'badge-warning', label: action };
+  if (action.includes('REMEDIATION'))          return { icon: <Wrench size={13} />,       cls: 'badge-neutral', label: action };
+  return { icon: null, cls: 'badge-neutral', label: action };
+}
+
+function formatEventDate(timestamp: string): { date: string; time: string } {
+  const d = new Date(timestamp);
+  return {
+    date: d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+  };
+}
+
+function groupEventsByDate(events: AuditEvent[]): Record<string, AuditEvent[]> {
+  return events.reduce<Record<string, AuditEvent[]>>((acc, evt) => {
+    const date = new Date(evt.timestamp).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    (acc[date] ??= []).push(evt);
+    return acc;
+  }, {});
+}
+
+const SkeletonRow: React.FC = () => (
+  <div style={{ display: 'flex', gap: 'var(--space-4)', padding: 'var(--space-4) 0', borderBottom: '1px solid var(--border)' }}>
+    <div className="skeleton" style={{ width: 80, height: 14, borderRadius: 'var(--radius-xs)', flexShrink: 0 }} />
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+      <div className="skeleton skeleton-text" style={{ width: '40%' }} />
+      <div className="skeleton skeleton-text" style={{ width: '60%' }} />
+    </div>
+  </div>
+);
 
 export const AuditTrail: React.FC = () => {
   const { currentOrganization } = useAuth();
+  const [events, setEvents]           = useState<AuditEvent[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState<string | null>(null);
+  const [actionFilter, setActionFilter] = useState('ALL');
+  const [page, setPage]               = useState(0);
+  const [totalPages, setTotalPages]   = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
-  const [events, setEvents] = useState<AuditEvent[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [actionFilter, setActionFilter] = useState<string>('ALL');
-  const [page, setPage] = useState<number>(0);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [totalElements, setTotalElements] = useState<number>(0);
-
-  const fetchAuditTrail = async () => {
+  const fetchAudit = async () => {
     if (!currentOrganization) return;
     try {
       setLoading(true);
@@ -36,163 +74,178 @@ export const AuditTrail: React.FC = () => {
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch organization audit log.');
+      setError(err.response?.data?.message || 'Failed to load audit log.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchAuditTrail();
-  }, [currentOrganization, actionFilter, page]);
+  useEffect(() => { fetchAudit(); }, [currentOrganization, actionFilter, page]);
 
-  const getActionBadge = (act: string) => {
-    if (act.includes('LOGIN')) return <span className="status-badge published">USER LOGIN</span>;
-    if (act.includes('APPROVED') || act.includes('COMPLETED')) return <span className="status-badge published">{act}</span>;
-    if (act.includes('CREATED') || act.includes('UPDATED')) return <span className="status-badge draft">{act}</span>;
-    return <span className="status-badge archived">{act}</span>;
-  };
+  const grouped = groupEventsByDate(events);
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Header Banner */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-          <ShieldAlert size={28} color="var(--accent-cyan)" />
-          <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Immutable Audit Trail & Governance Log</h1>
+    <div>
+      {/* Page header */}
+      <div className="page-header">
+        <div className="page-header-inner">
+          <div className="page-header-text">
+            <h2 className="page-title">Audit Log</h2>
+            <p className="page-subtitle">
+              Tamper-evident record of all critical compliance actions, authentication events, and modifications.
+            </p>
+          </div>
         </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-          Complete, tamper-evident record of all critical compliance actions, authentication events, and procedure modifications.
-        </p>
       </div>
 
-      {/* Security Privacy Notice */}
-      <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.25)', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.825rem', color: '#93c5fd' }}>
-        <Info size={20} style={{ flexShrink: 0 }} />
-        <span>
-          <strong>Privacy Guardrail Policy:</strong> Align audit logging strictly records metadata, action identifiers, and timestamps. Raw document contents and unencrypted credentials are never recorded in audit streams.
+      {/* Privacy notice */}
+      <div className="alert alert-neutral" style={{ marginBottom: 'var(--space-6)' }}>
+        <Info size={15} style={{ flexShrink: 0 }} />
+        <span style={{ fontSize: 'var(--text-sm)' }}>
+          <strong>Privacy policy:</strong> Align records only metadata, action identifiers, and timestamps. Raw document content and credentials are never stored in audit streams.
         </span>
       </div>
 
-      {/* Filter Toolbar Card */}
-      <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Filter size={18} color="var(--accent-cyan)" />
-            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Filter Action Type:</span>
-            <select
-              className="form-input"
-              style={{ width: '220px', padding: '0.4rem 0.75rem' }}
-              value={actionFilter}
-              onChange={(e) => { setActionFilter(e.target.value); setPage(0); }}
-            >
-              <option value="ALL">All Event Types</option>
-              <option value="USER_LOGIN">USER_LOGIN</option>
-              <option value="SOP_CREATED">SOP_CREATED</option>
-              <option value="SOP_APPROVED">SOP_APPROVED</option>
-              <option value="REGULATION_CREATED">REGULATION_CREATED</option>
-              <option value="MAPPING_CREATED">MAPPING_CREATED</option>
-              <option value="FINDING_CREATED">FINDING_CREATED</option>
-              <option value="REMEDIATION_CREATED">REMEDIATION_CREATED</option>
-              <option value="REMEDIATION_COMPLETED">REMEDIATION_COMPLETED</option>
-            </select>
-          </div>
-
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            Showing <strong>{events.length}</strong> of <strong>{totalElements}</strong> recorded events
-          </div>
-        </div>
+      {/* Filter bar */}
+      <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
+        <select
+          className="form-select"
+          style={{ width: 'auto', minWidth: 220 }}
+          value={actionFilter}
+          onChange={e => { setActionFilter(e.target.value); setPage(0); }}
+          aria-label="Filter by action type"
+        >
+          <option value="ALL">All event types</option>
+          <option value="USER_LOGIN">User login</option>
+          <option value="SOP_CREATED">SOP created</option>
+          <option value="SOP_APPROVED">SOP approved</option>
+          <option value="REGULATION_CREATED">Regulation created</option>
+          <option value="MAPPING_CREATED">Mapping created</option>
+          <option value="FINDING_CREATED">Finding created</option>
+          <option value="REMEDIATION_CREATED">Remediation created</option>
+          <option value="REMEDIATION_COMPLETED">Remediation completed</option>
+        </select>
+        {!loading && (
+          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>
+            {totalElements.toLocaleString()} total events
+          </span>
+        )}
       </div>
 
-      {/* Audit Log Table */}
-      <div className="card">
+      {/* Error */}
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }}>
+          <AlertCircle size={15} style={{ flexShrink: 0 }} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Timeline */}
+      <div className="card card-padding">
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4rem' }}>
-            <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent-cyan)' }} />
-          </div>
-        ) : error ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--accent-rose)' }}>
-            <AlertCircle size={40} style={{ marginBottom: '1rem' }} />
-            <p>{error}</p>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {[1,2,3,4,5,6,7,8].map(i => <SkeletonRow key={i} />)}
           </div>
         ) : events.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-secondary)' }}>
-            <Database size={40} style={{ opacity: 0.4, marginBottom: '1rem' }} />
-            <p style={{ fontWeight: 600 }}>No audit events found for this filter query.</p>
+          <div className="empty-state" style={{ padding: 'var(--space-12) 0' }}>
+            <ScrollText size={36} className="empty-state-icon" />
+            <h3 className="empty-state-title">No audit events</h3>
+            <p className="empty-state-description">No events match your current filter.</p>
           </div>
         ) : (
-          <div className="table-container">
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Action Event</th>
-                  <th>Actor / User</th>
-                  <th>Target Resource</th>
-                  <th>IP Address</th>
-                  <th>Event Metadata</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.map((evt) => (
-                  <tr key={evt.id}>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.825rem', fontFamily: 'var(--font-mono)' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Clock size={13} color="var(--accent-cyan)" />
-                        {new Date(evt.timestamp).toLocaleString()}
-                      </span>
-                    </td>
-                    <td>{getActionBadge(evt.action)}</td>
-                    <td>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem' }}>
-                        <User size={14} color="var(--accent-indigo)" />
-                        <span>{evt.actorEmail || evt.actorId}</span>
+          Object.entries(grouped).map(([date, dayEvents]) => (
+            <div key={date} style={{ marginBottom: 'var(--space-6)' }}>
+              {/* Date label */}
+              <div style={{
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--text-muted)',
+                letterSpacing: 'var(--tracking-wider)',
+                textTransform: 'uppercase',
+                marginBottom: 'var(--space-3)',
+                paddingBottom: 'var(--space-2)',
+                borderBottom: '1px solid var(--border)',
+              }}>
+                {date}
+              </div>
+
+              {/* Events for this day */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                {dayEvents.map(evt => {
+                  const cfg = getActionConfig(evt.action);
+                  const { time } = formatEventDate(evt.timestamp);
+                  return (
+                    <div key={evt.id} style={{
+                      display: 'flex',
+                      gap: 'var(--space-4)',
+                      alignItems: 'flex-start',
+                      padding: 'var(--space-3)',
+                      borderRadius: 'var(--radius-sm)',
+                      transition: 'background var(--duration-fast) var(--ease-default)',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      {/* Time */}
+                      <div style={{
+                        width: 64,
+                        flexShrink: 0,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 'var(--text-xs)',
+                        color: 'var(--text-muted)',
+                        paddingTop: 2,
+                      }}>
+                        <Clock size={11} style={{ marginRight: 3, verticalAlign: 'middle' }} />
+                        {time}
                       </div>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '0.8rem', background: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
-                        {evt.resourceType} : {evt.resourceId ? evt.resourceId.substring(0, 10) + '...' : 'N/A'}
-                      </span>
-                    </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {evt.ipAddress || '0.0.0.0'}
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {evt.metadata ? JSON.stringify(evt.metadata) : '{}'}
+
+                      {/* Event body */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: 'var(--space-1)' }}>
+                          <span className={`badge ${cfg.cls}`} style={{ gap: 4 }}>
+                            {cfg.icon}
+                            {cfg.label.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+                          {(evt.actorEmail || evt.actorId) && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <User size={11} color="var(--text-muted)" />
+                              {evt.actorEmail || evt.actorId}
+                            </span>
+                          )}
+                          {evt.resourceType && (
+                            <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                              {evt.resourceType}{evt.resourceId ? ` · ${evt.resourceId.slice(0, 8)}…` : ''}
+                            </span>
+                          )}
+                          {evt.ipAddress && evt.ipAddress !== '0.0.0.0' && (
+                            <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                              {evt.ipAddress}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
         )}
 
-        {/* Pagination Footer */}
+        {/* Pagination */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-            <button
-              className="btn btn-secondary"
-              disabled={page === 0}
-              onClick={() => setPage(p => p - 1)}
-              style={{ padding: '0.4rem 0.85rem' }}
-            >
-              <ChevronLeft size={16} />
-              <span>Previous</span>
-            </button>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Page {page + 1} of {totalPages}
-            </span>
-            <button
-              className="btn btn-secondary"
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage(p => p + 1)}
-              style={{ padding: '0.4rem 0.85rem' }}
-            >
-              <span>Next</span>
-              <ChevronRight size={16} />
-            </button>
+          <div className="pagination" style={{ borderTop: '1px solid var(--border)', marginTop: 'var(--space-4)', paddingTop: 'var(--space-4)' }}>
+            <span className="pagination-info">Page {page + 1} of {totalPages}</span>
+            <div className="pagination-controls">
+              <button className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+                <ChevronLeft size={15} /> Previous
+              </button>
+              <button className="btn btn-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+                Next <ChevronRight size={15} />
+              </button>
+            </div>
           </div>
         )}
       </div>

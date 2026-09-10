@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { uploadSOP } from '../api/sops';
 import { 
-  FileText, 
   Upload, 
   ArrowLeft, 
   AlertCircle, 
@@ -12,6 +11,7 @@ import {
   X, 
   Loader2 
 } from 'lucide-react';
+
 
 export const CreateSOP: React.FC = () => {
   const navigate = useNavigate();
@@ -104,33 +104,26 @@ export const CreateSOP: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      {/* Top Navigation */}
-      <button 
-        className="btn btn-secondary" 
-        onClick={() => navigate('/sops')} 
-        style={{ marginBottom: '1.5rem', padding: '0.4rem 0.85rem' }}
+    <div style={{ maxWidth: '760px' }}>
+      {/* Back navigation */}
+      <button
+        className="btn btn-ghost btn-sm"
+        onClick={() => navigate('/sops')}
+        style={{ marginBottom: 'var(--space-6)' }}
       >
-        <ArrowLeft size={16} />
-        <span>Back to SOPs</span>
+        <ArrowLeft size={14} />
+        Back to SOPs
       </button>
 
-      <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-sm)', background: 'rgba(6, 182, 212, 0.1)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <FileText size={24} />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Create Standard Operating Procedure</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-              Upload your SOP document file and configure compliance metadata.
-            </p>
-          </div>
-        </div>
+      <div className="page-header" style={{ marginBottom: 'var(--space-6)' }}>
+        <h2 className="page-title">New Standard Operating Procedure</h2>
+        <p className="page-subtitle">Upload your SOP document and configure its compliance metadata.</p>
+      </div>
 
+      <div className="card card-padding">
         {error && (
-          <div style={{ padding: '1rem', background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: 'var(--radius-sm)', color: '#fb7185', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={18} />
+          <div className="alert alert-error" style={{ marginBottom: 'var(--space-5)' }}>
+            <AlertCircle size={15} style={{ flexShrink: 0 }} />
             <span>{error}</span>
           </div>
         )}
@@ -221,31 +214,32 @@ export const CreateSOP: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div style={{ padding: '1rem 1.25rem', background: 'var(--bg-surface-elevated)', border: '1px solid var(--accent-cyan)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ padding: '0.5rem', background: 'rgba(6, 182, 212, 0.1)', color: 'var(--accent-cyan)', borderRadius: '6px' }}>
-                    <File size={20} />
+              <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--color-accent-subtle)', border: '1px solid rgba(0,122,255,0.3)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                  <div style={{ padding: 'var(--space-2)', background: 'var(--color-accent-subtle)', color: 'var(--color-accent)', borderRadius: 'var(--radius-xs)' }}>
+                    <File size={18} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{selectedFile.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • {selectedFile.type || 'Document'}
+                    <div style={{ fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>{selectedFile.name}</div>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB · {selectedFile.type || 'Document'}
                     </div>
                   </div>
                 </div>
                 <button
                   type="button"
+                  className="header-icon-btn"
                   onClick={() => setSelectedFile(null)}
-                  style={{ color: 'var(--text-muted)', padding: '0.25rem' }}
+                  aria-label="Remove file"
                 >
-                  <X size={18} />
+                  <X size={15} />
                 </button>
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-8)', paddingTop: 'var(--space-5)', borderTop: '1px solid var(--border)' }}>
             <button
               type="button"
               className="btn btn-secondary"
@@ -258,16 +252,17 @@ export const CreateSOP: React.FC = () => {
               type="submit"
               className="btn btn-primary"
               disabled={submitting}
+              id="create-sop-submit"
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Uploading Document...</span>
+                  <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                  Uploading…
                 </>
               ) : (
                 <>
-                  <CheckCircle2 size={18} />
-                  <span>Save SOP & Upload Version 1</span>
+                  <CheckCircle2 size={15} />
+                  Save SOP & Upload v1
                 </>
               )}
             </button>

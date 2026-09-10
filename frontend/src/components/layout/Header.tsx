@@ -1,19 +1,61 @@
 import React from 'react';
-import { ConnectionState, HealthStatusResponse } from '../../types';
-import { HealthBadge } from '../HealthBadge';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import { Search, Building2, LogOut, Menu, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Building2, User, RefreshCw, LogOut } from 'lucide-react';
+
 
 interface HeaderProps {
-  healthState: ConnectionState;
-  healthData: HealthStatusResponse | null;
   onRefreshHealth: () => void;
+  onSearchOpen: () => void;
+  onMobileMenuOpen: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ healthState, healthData, onRefreshHealth }) => {
+
+const ROUTE_TITLES: Record<string, string> = {
+  '/dashboard':              'Overview',
+  '/sops':                   'SOPs',
+  '/sops/new':               'New SOP',
+  '/regulations':            'Regulations',
+  '/regulations/new':        'New Regulation',
+  '/findings':               'Findings',
+  '/regulatory-changes':     'Regulatory Changes',
+  '/remediations':           'Remediation',
+  '/audit':                  'Audit Log',
+  '/settings/security':      'Security',
+  '/organizations':          'Organizations',
+};
+
+function getPageTitle(pathname: string): string {
+  if (pathname.match(/^\/sops\/[^/]+$/))         return 'SOP Details';
+  if (pathname.match(/^\/regulations\/[^/]+$/))  return 'Regulation Details';
+  if (pathname.match(/^\/findings\/[^/]+$/))     return 'Finding Details';
+  if (pathname.match(/^\/regulatory-changes\/[^/]+$/)) return 'Change Details';
+  return ROUTE_TITLES[pathname] || 'Align';
+}
+
+function getUserInitials(fullName?: string, email?: string): string {
+  if (fullName) {
+    const parts = fullName.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0][0].toUpperCase();
+  }
+  return email ? email[0].toUpperCase() : 'U';
+}
+
+export const Header: React.FC<HeaderProps> = ({
+  onRefreshHealth,
+  onSearchOpen,
+  onMobileMenuOpen,
+}) => {
+
   const { user, currentOrganization, organizations, setCurrentOrganization, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const pageTitle = getPageTitle(location.pathname);
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const searchHint = isMac ? '⌘K' : 'Ctrl K';
 
   const handleLogout = () => {
     logout();
@@ -21,71 +63,92 @@ export const Header: React.FC<HeaderProps> = ({ healthState, healthData, onRefre
   };
 
   return (
-    <header className="header">
-      <div className="header-title-group">
-        <h1 className="header-title">Align Compliance Intelligence</h1>
-        <span style={{ fontSize: '0.75rem', background: 'var(--bg-surface-elevated)', padding: '0.2rem 0.6rem', borderRadius: '4px', color: 'var(--text-muted)' }}>
-          Phase 1 Engine
-        </span>
+    <header className="app-header">
+      {/* Left: mobile menu + page title */}
+      <div className="header-left">
+        <button
+          className="header-icon-btn"
+          onClick={onMobileMenuOpen}
+          aria-label="Open menu"
+          style={{ display: 'none' }}
+          id="mobile-menu-btn"
+        >
+          <Menu size={18} />
+        </button>
+        <h1 className="header-page-title">{pageTitle}</h1>
       </div>
 
-      <div className="header-actions">
-        {/* Organization Selector */}
-        {user && (
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-surface-elevated)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
-            <Building2 size={16} color="var(--accent-cyan)" />
+      {/* Right: search, org, user */}
+      <div className="header-right">
+
+        {/* Search trigger */}
+        <button
+          className="header-search-trigger"
+          onClick={onSearchOpen}
+          aria-label="Open search"
+          id="global-search-trigger"
+        >
+          <Search size={14} />
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Search…</span>
+          <kbd className="header-kbd">{searchHint}</kbd>
+        </button>
+
+        {/* Refresh health */}
+        <button
+          className="header-icon-btn"
+          onClick={onRefreshHealth}
+          title="Refresh connection status"
+          aria-label="Refresh backend status"
+        >
+          <RefreshCw size={14} />
+        </button>
+
+        <div className="header-divider" aria-hidden="true" />
+
+        {/* Org selector */}
+        {user && organizations.length > 0 && (
+          <div className="org-selector">
+            <Building2 size={14} color="var(--text-muted)" aria-hidden="true" />
             <select
+              id="org-selector"
               value={currentOrganization?.id || ''}
-              onChange={(e) => {
-                if (e.target.value === 'NEW') {
+              onChange={e => {
+                if (e.target.value === '__NEW__') {
                   navigate('/organizations');
                 } else {
-                  const selected = organizations.find(o => o.id === e.target.value);
-                  if (selected) setCurrentOrganization(selected);
+                  const org = organizations.find(o => o.id === e.target.value);
+                  if (org) setCurrentOrganization(org);
                 }
               }}
-              style={{ background: 'transparent', color: 'var(--text-primary)', border: 'none', outline: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
+              aria-label="Select organization"
             >
-              {organizations.map(org => (
-                <option key={org.id} value={org.id} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-                  {org.name}
-                </option>
+              {organizations.map(o => (
+                <option key={o.id} value={o.id}>{o.name}</option>
               ))}
-              <option value="NEW" style={{ background: 'var(--bg-surface)', color: 'var(--accent-cyan)' }}>
-                + Manage / Create Org
-              </option>
+              <option value="__NEW__">+ Manage organizations</option>
             </select>
           </div>
         )}
 
-        <button 
-          onClick={onRefreshHealth}
-          title="Refresh Backend Connection Status"
-          style={{ padding: '0.4rem', color: 'var(--text-secondary)', borderRadius: '4px', background: 'transparent', border: 'none', cursor: 'pointer' }}
-        >
-          <RefreshCw size={16} />
-        </button>
-
-        <HealthBadge state={healthState} healthData={healthData} showDetails={true} />
-
-        {/* User Avatar & Logout */}
-        {user ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingLeft: '0.5rem', borderLeft: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '0.8rem' }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{user.fullName}</span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{user.email}</span>
+        {/* User + logout */}
+        {user && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <div
+              className="user-avatar"
+              title={`${user.fullName} (${user.email})`}
+              aria-label={`Logged in as ${user.fullName}`}
+            >
+              {getUserInitials(user.fullName, user.email)}
             </div>
             <button
+              className="header-icon-btn"
               onClick={handleLogout}
-              title="Sign Out"
-              style={{ padding: '0.45rem', borderRadius: '50%', background: 'rgba(244, 63, 94, 0.1)', color: '#fda4af', border: '1px solid rgba(244, 63, 94, 0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Sign out"
+              aria-label="Sign out"
+              id="logout-btn"
             >
-              <LogOut size={16} />
+              <LogOut size={14} />
             </button>
-          </div>
-        ) : (
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <User size={16} color="var(--text-secondary)" />
           </div>
         )}
       </div>
