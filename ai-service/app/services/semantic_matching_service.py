@@ -8,7 +8,15 @@ from app.core.config import settings
 class SemanticMatchingService:
     def __init__(self):
         # Initialize pretrained SentenceTransformer
-        self.model = SentenceTransformer(settings.PRETRAINED_TRANSFORMER)
+        model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'models', 'legal-matcher')
+        if os.path.exists(model_path):
+            try:
+                self.model = SentenceTransformer(model_path)
+            except Exception as e:
+                print(f"Failed to load fine-tuned model from {model_path}: {e}")
+                self.model = SentenceTransformer(settings.PRETRAINED_TRANSFORMER)
+        else:
+            self.model = SentenceTransformer(settings.PRETRAINED_TRANSFORMER)
 
     def embed_texts(self, texts: List[str]) -> np.ndarray:
         if not texts:

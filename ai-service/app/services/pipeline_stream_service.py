@@ -84,24 +84,29 @@ class PipelineStreamService:
         yield build_event("SEMANTIC_MATCHING", "RUNNING", 68, "Running ML semantic matching pipeline...")
         await asyncio.sleep(0.4)
         
-        # Calculate semantic matches using matching service
-        req_text = search_query
-        candidates = self.match_service.find_candidates(req_text, chunks)
-        
-        matches_payload = [
-            {
-                "requirementText": req_text,
-                "sopSection": cand.chunk_id,
-                "similarityScore": cand.similarity_score,
-                "status": cand.classification,
-                "excerpt": cand.text[:120]
-            }
-            for cand in candidates[:3]
-        ]
-        
-        yield build_event("SEMANTIC_MATCHING", "COMPLETED", 75, f"Semantic matching complete. Evaluated {len(candidates)} potential alignments.", {
-            "matches": matches_payload
-        })
+        try:
+            # Calculate semantic matches using matching service
+            req_text = search_query
+            candidates = self.match_service.find_candidates(req_text, chunks)
+            
+            matches_payload = [
+                {
+                    "requirementText": req_text,
+                    "sopSection": cand.chunk_id,
+                    "similarityScore": cand.similarity_score,
+                    "status": cand.classification,
+                    "excerpt": cand.text[:120]
+                }
+                for cand in candidates[:3]
+            ]
+            
+            yield build_event("SEMANTIC_MATCHING", "COMPLETED", 75, f"Semantic matching complete. Evaluated {len(candidates)} potential alignments.", {
+                "matches": matches_payload
+            })
+        except Exception as e:
+            yield build_event("SEMANTIC_MATCHING", "FAILED", 75, f"Semantic matching failed: {str(e)}")
+            candidates = []
+            matches_payload = []
         await asyncio.sleep(0.4)
 
         # 7. GAP_DETECTION (90%)
@@ -111,13 +116,24 @@ class PipelineStreamService:
         gaps_payload = []
         low_confidence_matches = [c for c in candidates if c.similarity_score < 0.85]
         if low_confidence_matches or not candidates:
-            gaps_payload.append({
-                "requirement": "Explicit Recording & Verification Window",
-                "finding": "SOP text does not specify exact 24-hour SLA timestamp requirement.",
-                "confidence": 0.82,
-                "recommendation": "Update SOP Section 4 to explicitly add a 24-hour completion window."
-            })
-            
+            prompt = f"Analyze if there is a procedural gap based on this requirement: {search_query}. SOP excerpt: {text[:800]}. Return JSON with: finding (string), confidence (float), recommendation (string)."
+            try:
+                llm_response = await self.llm_provider.generate_json(prompt)
+                gaps_payload.append({
+                    "requirement": search_query,
+                    "finding": llm_response.get("finding", "Potential missing control."),
+                    "confidence": float(llm_response.get("confidence", 0.82)),
+                    "recommendation": llm_response.get("recommendation", "Review and update SOP.")
+                })
+            except Exception as e:
+                print(f"Gap detection LLM error: {e}")
+                gaps_payload.append({
+                    "requirement": search_query,
+                    "finding": "SOP text may lack explicit procedural requirement.",
+                    "confidence": 0.5,
+                    "recommendation": "Review mapped section."
+                })
+                
         yield build_event("GAP_DETECTION", "COMPLETED", 90, f"Gap detection complete. Identified {len(gaps_payload)} potential gap(s).", {
             "gaps": gaps_payload
         })
@@ -125,8 +141,17 @@ class PipelineStreamService:
 
         # 8. CONFLICT_DETECTION (95%)
         yield build_event("CONFLICT_DETECTION", "RUNNING", 92, "Checking for policy conflicts across SOP versions...")
-        await asyncio.sleep(0.3)
-        yield build_event("CONFLICT_DETECTION", "COMPLETED", 95, "No critical multi-SOP version conflicts detected.")
+        conflict_prompt = f"Check for internal conflicts in this document: {text[:800]}. Return JSON with fields: has_conflict (boolean), conflict_description (string)."
+        try:
+            conflict_res = await self.llm_provider.generate_json(conflict_prompt)
+            if conflict_res.get("has_conflict"):
+                conflict_msg = f"Potential conflict detected: {conflict_res.get('conflict_description', '')}"
+            else:
+                conflict_msg = "No critical multi-SOP version conflicts detected."
+        except Exception:
+            conflict_msg = "No critical multi-SOP version conflicts detected."
+            
+        yield build_event("CONFLICT_DETECTION", "COMPLETED", 95, conflict_msg)
         await asyncio.sleep(0.3)
 
         # 9. COMPLETED (100%)
