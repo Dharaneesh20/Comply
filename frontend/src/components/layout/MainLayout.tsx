@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { MobileDock } from './MobileDock';
 import { CommandPalette } from '../CommandPalette';
 import { ConnectionState, HealthStatusResponse } from '../../types';
 
@@ -31,7 +32,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-
   return (
     <div className="app-shell">
       <Sidebar
@@ -53,7 +53,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </main>
       </div>
 
+      <MobileDock />
       <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 };
+

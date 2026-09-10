@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { getSecurityConfig } from '../api/audit';
 import { SecurityConfigInfo } from '../types/audit';
 import {
   CheckCircle2,
   Loader2,
   X,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
 
 
@@ -53,8 +57,10 @@ const SettingsSection: React.FC<{ title: string; children: React.ReactNode }> = 
 
 export const SecuritySettings: React.FC = () => {
   const { currentOrganization, user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [config, setConfig] = useState<SecurityConfigInfo | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     if (!currentOrganization) return;
@@ -96,6 +102,45 @@ export const SecuritySettings: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 'var(--space-6)' }}>
         {/* Left column */}
         <div>
+          {/* Appearance Section */}
+          <SettingsSection title="Appearance">
+            <SettingRow
+              label="Interface Theme"
+              description="Select your preferred color theme or sync with system preferences"
+              value={
+                <div style={{ display: 'flex', gap: '0.375rem', background: 'var(--bg-hover)', padding: '3px', borderRadius: 'var(--radius-sm)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setTheme('light')}
+                    className={`btn ${theme === 'light' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '0.35rem 0.65rem', fontSize: 'var(--text-xs)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <Sun size={14} />
+                    <span>Light</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme('dark')}
+                    className={`btn ${theme === 'dark' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '0.35rem 0.65rem', fontSize: 'var(--text-xs)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <Moon size={14} />
+                    <span>Dark</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme('system')}
+                    className={`btn ${theme === 'system' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '0.35rem 0.65rem', fontSize: 'var(--text-xs)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <Monitor size={14} />
+                    <span>System</span>
+                  </button>
+                </div>
+              }
+            />
+          </SettingsSection>
+
           {/* Infrastructure */}
           <SettingsSection title="Infrastructure">
             <SettingRow

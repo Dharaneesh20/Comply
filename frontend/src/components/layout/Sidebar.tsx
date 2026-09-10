@@ -87,10 +87,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ healthState, healthData, mobil
       <aside className={sidebarClass} role="navigation" aria-label="Main navigation">
         {/* Brand */}
         <div className="sidebar-brand">
-          <div className="sidebar-brand-icon" aria-hidden="true">A</div>
           <div>
-            <div className="sidebar-brand-text">Align</div>
-            <div className="sidebar-brand-sub">Compliance</div>
+            <div className="sidebar-brand-text">Align.</div>
+            <div className="sidebar-brand-sub">Statutory & SOP Workspace</div>
           </div>
         </div>
 

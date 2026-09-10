@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
+import DottedBg2 from '../components/ui/DottedBg2';
 
 export const Register: React.FC = () => {
   const [fullName, setFullName]   = useState('');
@@ -32,43 +33,66 @@ export const Register: React.FC = () => {
 
   return (
     <div className="auth-shell">
-      {/* Left branding panel */}
+      {/* Left branding panel with Chromatic Waves WebGL Shader */}
       <div className="auth-left">
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-12)' }}>
-            <div className="sidebar-brand-icon" style={{ width: 36, height: 36, fontSize: 'var(--text-lg)' }}>A</div>
-            <span style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', letterSpacing: 'var(--tracking-tight)' }}>
-              Align
-            </span>
-          </div>
-
-          <h2 style={{
-            fontSize: 'var(--text-4xl)',
-            fontWeight: 'var(--weight-bold)',
-            color: 'var(--text-primary)',
-            letterSpacing: 'var(--tracking-tight)',
-            lineHeight: 'var(--leading-tight)',
-            marginBottom: 'var(--space-4)',
-          }}>
-            Get started<br />in minutes.
-          </h2>
-          <p style={{ fontSize: 'var(--text-lg)', color: 'var(--text-secondary)', lineHeight: 'var(--leading-relaxed)', maxWidth: 420 }}>
-            Create your account, set up your organization, and start mapping your compliance requirements right away.
-          </p>
+        <div className="auth-bg-canvas">
+          <DottedBg2
+            frequency={1.2}
+            speed={1.0}
+            cellSize={4}
+            gamma={4}
+            paletteBias={-4}
+            colors={[
+              "#007AFF",
+              "#0066D6",
+              "#34C759",
+              "#5AC8FA",
+              "#5856D6",
+              "#AF52DE",
+              "#0A84FF",
+            ]}
+          />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {[
-            'No credit card required',
-            'Works with your existing SOPs and regulations',
-            'Team collaboration built in',
-            'Enterprise-grade security from day one',
-          ].map(f => (
-            <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-              <ShieldCheck size={16} color="var(--color-accent)" style={{ flexShrink: 0 }} />
-              <span>{f}</span>
+        <div className="auth-left-content">
+          <div>
+            <div style={{ marginBottom: 'var(--space-12)' }}>
+              <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--text-primary)', letterSpacing: 'var(--tracking-tight)', lineHeight: 1.1 }}>
+                Align.
+              </div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase', marginTop: 4 }}>
+                Statutory & SOP Workspace
+              </div>
             </div>
-          ))}
+
+            <h2 style={{
+              fontSize: 'var(--text-4xl)',
+              fontWeight: 'var(--weight-bold)',
+              color: 'var(--text-primary)',
+              letterSpacing: 'var(--tracking-tight)',
+              lineHeight: 'var(--leading-tight)',
+              marginBottom: 'var(--space-4)',
+            }}>
+              Get started<br />in minutes.
+            </h2>
+            <p style={{ fontSize: 'var(--text-lg)', color: 'var(--text-secondary)', lineHeight: 'var(--leading-relaxed)', maxWidth: 420 }}>
+              Create your account, set up your organization, and start mapping your compliance requirements right away.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            {[
+              'No credit card required',
+              'Works with your existing SOPs and regulations',
+              'Team collaboration built in',
+              'Enterprise-grade security from day one',
+            ].map(f => (
+              <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                <ShieldCheck size={16} color="var(--color-accent)" style={{ flexShrink: 0 }} />
+                <span>{f}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

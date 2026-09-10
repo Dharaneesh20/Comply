@@ -23,7 +23,9 @@ import { AuditTrail } from './pages/AuditTrail';
 import { SecuritySettings } from './pages/SecuritySettings';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Loader2 } from 'lucide-react';
+
 
 // ── Spinner shown while auth initialises ──────────────────────────────────
 const AuthLoadingScreen: React.FC = () => (
@@ -107,16 +109,15 @@ const AppRoutes: React.FC = () => {
   );
 };
 
-// ── Root ───────────────────────────────────────────────────────────────────
-export const App: React.FC = () => {
-  // Global Ctrl+K listener (before MainLayout mounts; handled inside MainLayout too)
-  return (
-    <BrowserRouter>
+export const App: React.FC = () => (
+  <BrowserRouter>
+    <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
           <AppRoutes />
         </ToastProvider>
       </AuthProvider>
-    </BrowserRouter>
-  );
-};
+    </ThemeProvider>
+  </BrowserRouter>
+);
+
