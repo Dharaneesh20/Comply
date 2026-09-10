@@ -31,7 +31,6 @@ import {
   Trash2,
   ExternalLink,
   Activity,
-  AlertTriangle,
   Play,
   CheckCircle,
   Clock,
@@ -317,37 +316,37 @@ export const SOPDetails: React.FC = () => {
   return (
     <div style={{ maxWidth: '1150px', margin: '0 auto' }}>
       {/* Top Breadcrumb & Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button className="btn btn-secondary" onClick={() => navigate('/sops')} style={{ padding: '0.4rem 0.85rem' }}>
-          <ArrowLeft size={16} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
+        <button className="btn btn-secondary btn-sm" onClick={() => navigate('/sops')}>
+          <ArrowLeft size={15} />
           <span>Back to SOPs</span>
         </button>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           {sop.status !== 'ARCHIVED' && (
             <>
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary btn-sm"
                 onClick={handleRunAIAnalysis}
                 disabled={analyzingAI}
-                style={{ borderColor: 'rgba(6, 182, 212, 0.4)', color: 'var(--accent-cyan)' }}
+                style={{ color: 'var(--color-accent)', borderColor: 'rgba(0, 122, 255, 0.3)' }}
               >
-                {analyzingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles size={16} />}
+                {analyzingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles size={15} />}
                 <span>{analyzingAI ? 'Analyzing...' : 'Analyze SOP with AI'}</span>
               </button>
 
               <button 
-                className="btn btn-secondary" 
+                className="btn btn-secondary btn-sm" 
                 onClick={handleArchive}
                 disabled={archiving}
-                style={{ color: 'var(--accent-rose)', borderColor: 'rgba(244, 63, 94, 0.3)' }}
+                style={{ color: 'var(--color-danger-text)', borderColor: 'rgba(255, 59, 48, 0.3)' }}
               >
-                <Archive size={16} />
+                <Archive size={15} />
                 <span>{archiving ? 'Archiving...' : 'Archive SOP'}</span>
               </button>
 
-              <button className="btn btn-primary" onClick={() => setShowVersionModal(true)}>
-                <Plus size={16} />
+              <button className="btn btn-primary btn-sm" onClick={() => setShowVersionModal(true)}>
+                <Plus size={15} />
                 <span>Create New Version</span>
               </button>
             </>
@@ -356,505 +355,484 @@ export const SOPDetails: React.FC = () => {
       </div>
 
       {/* Main Header Banner Card */}
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="card card-padding" style={{ marginBottom: 'var(--space-6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <span className={`status-badge ${sop.status.toLowerCase()}`}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
+              <span className={`badge ${sop.status === 'PUBLISHED' ? 'badge-success' : 'badge-neutral'}`}>
                 {sop.status}
               </span>
-              <span style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#a5b4fc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 700 }}>
+              <span className="badge badge-accent" style={{ fontFamily: 'var(--font-mono)' }}>
                 Current Version: v{sop.currentVersion}
               </span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                <Building2 size={14} color="var(--accent-blue)" />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
+                <Building2 size={13} style={{ color: 'var(--color-accent)' }} />
                 {sop.department}
               </span>
             </div>
 
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--text-primary)', letterSpacing: 'var(--tracking-tight)', marginBottom: 'var(--space-1)' }}>
               {sop.title}
             </h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '800px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', maxWidth: '800px' }}>
               {sop.description || 'No description provided.'}
             </p>
           </div>
         </div>
 
         {/* Metadata Details Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-4)', marginTop: 'var(--space-5)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--border)' }}>
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               DOCUMENT OWNER ID
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
-              <User size={14} color="var(--accent-cyan)" />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
+              <User size={13} style={{ color: 'var(--color-accent)' }} />
               {sop.ownerId}
             </span>
           </div>
 
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               CREATED DATE
             </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)' }}>
               {new Date(sop.createdAt).toLocaleString()}
             </span>
           </div>
 
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               LAST REVIEWED
             </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)' }}>
               {sop.lastReviewedAt ? new Date(sop.lastReviewedAt).toLocaleDateString() : 'Not reviewed yet'}
             </span>
           </div>
 
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               NEXT SCHEDULED REVIEW
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: sop.nextReviewAt ? 'var(--accent-amber)' : 'var(--text-muted)' }}>
-              <Calendar size={14} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: sop.nextReviewAt ? 'var(--color-warning-text)' : 'var(--text-muted)' }}>
+              <Calendar size={13} />
               {sop.nextReviewAt ? new Date(sop.nextReviewAt).toLocaleDateString() : 'Unscheduled'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* AI Compliance Intelligence Candidates Section */}
-      {aiAnalyses.length > 0 && (
-        <div className="card" style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--accent-cyan)' }}>
-          <div className="card-title" style={{ marginBottom: '0.75rem' }}>
-            <Sparkles size={20} color="var(--accent-cyan)" />
-            <span>AI Compliance Intelligence Candidates & Semantic Match Analysis</span>
-          </div>
-
-          {aiAnalyses.map((an) => (
-            <div key={an.id} style={{ background: 'var(--bg-surface-elevated)', padding: '1rem 1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span className="status-badge published" style={{ background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)' }}>
-                    {an.results[0]?.result || 'POTENTIAL_MATCH'}
-                  </span>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                    Model: {an.modelName} (v{an.modelVersion})
-                  </span>
-                </div>
-                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--accent-emerald)' }}>
-                  {Math.round((an.results[0]?.confidence || 0.91) * 100)}% Confidence
-                </span>
+      {/* Dashboard Main Grid Layout (Bigger Main Column + 2 Sidebar Cards) */}
+      <div className="sop-details-layout">
+        {/* Main Content Column (Bigger Box Area) */}
+        <div className="sop-details-main">
+          {/* AI Compliance Candidates Section */}
+          {aiAnalyses.length > 0 && (
+            <div className="card card-padding" style={{ borderLeft: '4px solid var(--color-accent)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+                <Sparkles size={18} style={{ color: 'var(--color-accent)' }} />
+                <h3 className="section-title" style={{ margin: 0 }}>
+                  AI Compliance Intelligence Candidates
+                </h3>
               </div>
 
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-                Candidate Requirement Standard:
-              </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', background: '#050811', padding: '0.6rem 0.85rem', borderRadius: '4px', fontStyle: 'italic', marginBottom: '0.75rem' }}>
-                "{an.results[0]?.requirementText || 'Customer complaints and operational events must be recorded within required timeframe.'}"
-              </p>
-
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                <strong>Reasoning Summary:</strong> {an.results[0]?.reasoningSummary || 'The SOP procedure describes operational execution steps matching regulatory controls.'}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>
-                  Suggested Action: {an.results[0]?.suggestedAction || 'Review and confirm this mapping.'}
-                </span>
-
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button
-                    className="btn btn-primary"
-                    style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
-                    onClick={() => handleAIReview(an.id, 'ACCEPT')}
-                  >
-                    Accept Candidate
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem', color: 'var(--accent-rose)' }}
-                    onClick={() => handleAIReview(an.id, 'REJECT')}
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div className="card-title" style={{ marginBottom: '1rem' }}>
-          <ShieldCheck size={20} color="var(--accent-indigo)" />
-          <span>Applicable Regulatory Requirements ({mappedRequirements.length})</span>
-        </div>
-
-        {mappedRequirements.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-secondary)' }}>
-            <Link2 size={36} style={{ opacity: 0.4, marginBottom: '0.75rem' }} />
-            <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>No Regulatory Requirements Mapped</p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              To map a requirement clause to this SOP, navigate to the Regulations tab and select "Map Requirement to SOP".
-            </p>
-          </div>
-        ) : (
-          <div className="table-container">
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Section Clause</th>
-                  <th>Regulatory Framework</th>
-                  <th>Requirement Text</th>
-                  <th>Mapping Type</th>
-                  <th>Confidence</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mappedRequirements.map((req) => (
-                  <tr key={req.mappingId}>
-                    <td>
-                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
-                        {req.sectionReference}
+              {aiAnalyses.map((an) => (
+                <div key={an.id} style={{ background: 'var(--bg-surface-raised)', padding: 'var(--space-4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', marginBottom: 'var(--space-3)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                      <span className="badge badge-accent">
+                        {an.results[0]?.result || 'POTENTIAL_MATCH'}
                       </span>
-                    </td>
-                    <td>
-                      <div 
-                        onClick={() => navigate(`/regulations/${req.regulationId}`)}
-                        style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                      >
-                        <ShieldCheck size={15} color="var(--accent-blue)" />
-                        <span>{req.regulationTitle || 'Regulation Entry'}</span>
-                        <ExternalLink size={12} style={{ opacity: 0.6 }} />
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '380px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {req.requirementText}
-                      </div>
-                    </td>
-                    <td>{getMappingTypeBadge(req.mappingType)}</td>
-                    <td>
-                      <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-emerald)', fontWeight: 700 }}>
-                        {Math.round(req.confidence * 100)}%
+                      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                        Model: {an.modelName} (v{an.modelVersion})
                       </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button 
-                        onClick={() => handleDeleteMapping(req.mappingId)}
-                        style={{ color: 'var(--accent-rose)', padding: '0.35rem', borderRadius: '4px' }}
-                        title="Unmap Requirement"
+                    </div>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: 'var(--color-success-text)' }}>
+                      {Math.round((an.results[0]?.confidence || 0.91) * 100)}% Confidence
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', marginBottom: 'var(--space-1)' }}>
+                    Candidate Requirement Standard:
+                  </div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)', fontStyle: 'italic', marginBottom: 'var(--space-3)', border: '1px solid var(--border)' }}>
+                    "{an.results[0]?.requirementText || 'Customer complaints and operational events must be recorded within required timeframe.'}"
+                  </p>
+
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Reasoning Summary:</strong> {an.results[0]?.reasoningSummary || 'The SOP procedure describes operational execution steps matching regulatory controls.'}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 'var(--space-3)' }}>
+                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)' }}>
+                      Suggested Action: {an.results[0]?.suggestedAction || 'Review and confirm this mapping.'}
+                    </span>
+
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleAIReview(an.id, 'ACCEPT')}
                       >
-                        <Trash2 size={16} />
+                        Accept Candidate
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem' }}>
-        {/* Left Column: Active Document Details & Version Timeline */}
-        <div>
-          {/* Active File Card */}
-          {latestVersion && (
-            <div className="card" style={{ marginBottom: '1.5rem' }}>
-              <div className="card-title">
-                <FileCheck size={20} color="var(--accent-emerald)" />
-                <span>Active Document Artifact (v{latestVersion.versionNumber})</span>
-              </div>
-              <p className="card-subtitle">
-                Current stored payload managed via StorageService
-              </p>
-
-              <div style={{ padding: '1.25rem', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-sm)', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FileText size={24} />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                      {latestVersion.documentMetadata?.originalFilename || 'SOP_Document'}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem', marginTop: '0.2rem' }}>
-                      <span>{(latestVersion.documentMetadata?.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB</span>
-                      <span>•</span>
-                      <span>{latestVersion.documentMetadata?.contentType}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <a
-                  href={`/api/v1/sops/${id}/versions`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-secondary"
-                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.825rem' }}
-                >
-                  <FileDown size={14} />
-                  <span>Download</span>
-                </a>
-              </div>
-
-              <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: '#050811', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginBottom: '0.2rem' }}>STORAGE REFERENCE POINTER</div>
-                {latestVersion.storageReference}
-              </div>
-            </div>
-          )}
-
-          {/* Version History Vertical Timeline */}
-          <div className="card">
-            <div className="card-title" style={{ marginBottom: '1.5rem' }}>
-              <History size={20} color="var(--accent-cyan)" />
-              <span>Version History Log ({versions.length} versions)</span>
-            </div>
-
-            <div className="timeline">
-              {versions.map((ver) => (
-                <div key={ver.id} className="timeline-item">
-                  <div className="timeline-node" style={{ borderColor: ver.versionNumber === sop.currentVersion ? 'var(--accent-cyan)' : 'var(--border-color)' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: ver.versionNumber === sop.currentVersion ? 'var(--accent-cyan)' : 'var(--text-muted)' }} />
-                  </div>
-                  <div className="timeline-content">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                          Version {ver.versionNumber}
-                        </span>
-                        <span style={{ 
-                          fontSize: '0.7rem', 
-                          fontWeight: 700, 
-                          padding: '0.15rem 0.5rem', 
-                          borderRadius: '4px',
-                          background: ver.workflowStatus === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : ver.workflowStatus === 'APPROVED' ? 'rgba(99, 102, 241, 0.15)' : ver.workflowStatus === 'IN_REVIEW' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                          color: ver.workflowStatus === 'ACTIVE' ? 'var(--accent-emerald)' : ver.workflowStatus === 'APPROVED' ? '#a5b4fc' : ver.workflowStatus === 'IN_REVIEW' ? 'var(--accent-amber)' : 'var(--text-muted)'
-                        }}>
-                          {ver.workflowStatus || 'ACTIVE'}
-                        </span>
-                        {ver.versionNumber === sop.currentVersion && (
-                          <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)' }}>
-                            CURRENT ACTIVE
-                          </span>
-                        )}
-                      </div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {new Date(ver.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-
-                    {ver.changeSummary && (
-                      <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', fontStyle: 'italic', background: 'rgba(255, 255, 255, 0.02)', padding: '0.5rem 0.75rem', borderRadius: '4px' }}>
-                        "{ver.changeSummary}"
-                      </div>
-                    )}
-
-                    {/* Version Workflow State Actions Stepper */}
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      {(!ver.workflowStatus || ver.workflowStatus === 'DRAFT') && (
-                        <button
-                          className="btn btn-secondary"
-                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', gap: '0.35rem' }}
-                          onClick={() => handleOpenReviewModal(ver)}
-                          disabled={actionLoading}
-                        >
-                          <Clock size={12} color="var(--accent-amber)" />
-                          <span>Submit for Review</span>
-                        </button>
-                      )}
-
-                      {ver.workflowStatus === 'IN_REVIEW' && (
-                        <button
-                          className="btn btn-secondary"
-                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', gap: '0.35rem', borderColor: 'rgba(99, 102, 241, 0.4)' }}
-                          onClick={() => handleOpenApproveModal(ver)}
-                          disabled={actionLoading}
-                        >
-                          <ShieldCheck size={12} color="#a5b4fc" />
-                          <span>Approve Version</span>
-                        </button>
-                      )}
-
-                      {ver.workflowStatus === 'APPROVED' && (
-                        <button
-                          className="btn btn-primary"
-                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', gap: '0.35rem', background: 'var(--accent-emerald)' }}
-                          onClick={() => handleActivateVersion(ver)}
-                          disabled={actionLoading}
-                        >
-                          <CheckCircle2 size={12} />
-                          <span>Activate Version</span>
-                        </button>
-                      )}
-                    </div>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.78rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
-                      <span>Filename: <strong style={{ color: 'var(--text-secondary)' }}>{ver.documentMetadata?.originalFilename}</strong></span>
-                      <span>Size: <strong style={{ color: 'var(--text-secondary)' }}>{((ver.documentMetadata?.fileSizeBytes || 0) / 1024).toFixed(1)} KB</strong></span>
-                      <span>Created By User ID: <strong style={{ color: 'var(--text-secondary)' }}>{ver.createdBy}</strong></span>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ color: 'var(--color-danger-text)' }}
+                        onClick={() => handleAIReview(an.id, 'REJECT')}
+                      >
+                        Reject
+                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Applicable Regulatory Requirements Section */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+              <ShieldCheck size={18} style={{ color: 'var(--color-accent)' }} />
+              <h3 className="section-title" style={{ margin: 0 }}>
+                Applicable Regulatory Requirements ({mappedRequirements.length})
+              </h3>
+            </div>
+
+            {mappedRequirements.length === 0 ? (
+              <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+                <Link2 size={32} className="empty-state-icon" />
+                <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', marginBottom: 'var(--space-1)' }}>
+                  No Regulatory Requirements Mapped
+                </h4>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', maxWidth: '400px' }}>
+                  To map a requirement clause to this SOP, navigate to Regulations and select "Map Requirement to SOP".
+                </p>
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table className="align-table">
+                  <thead>
+                    <tr>
+                      <th>Clause</th>
+                      <th>Framework</th>
+                      <th>Requirement Text</th>
+                      <th>Mapping Type</th>
+                      <th>Confidence</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mappedRequirements.map((req) => (
+                      <tr key={req.mappingId}>
+                        <td>
+                          <span style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-xs)', color: 'var(--color-accent)', background: 'var(--color-accent-subtle)', padding: '2px 6px', borderRadius: 'var(--radius-xs)', fontFamily: 'var(--font-mono)' }}>
+                            {req.sectionReference}
+                          </span>
+                        </td>
+                        <td>
+                          <div 
+                            onClick={() => navigate(`/regulations/${req.regulationId}`)}
+                            style={{ fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}
+                          >
+                            <ShieldCheck size={14} style={{ color: 'var(--color-accent)' }} />
+                            <span>{req.regulationTitle || 'Regulation Entry'}</span>
+                            <ExternalLink size={12} style={{ opacity: 0.6 }} />
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {req.requirementText}
+                          </div>
+                        </td>
+                        <td>{getMappingTypeBadge(req.mappingType)}</td>
+                        <td>
+                          <span style={{ fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)', color: 'var(--color-success-text)', fontWeight: 'var(--weight-bold)' }}>
+                            {Math.round(req.confidence * 100)}%
+                          </span>
+                        </td>
+                        <td className="text-right">
+                          <button 
+                            onClick={() => handleDeleteMapping(req.mappingId)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--color-danger-text)' }}
+                            title="Unmap Requirement"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Sub-grid for Active Document Artifact & Version History */}
+          <div className="sop-details-subgrid">
+            {/* Active Document Details Card */}
+            {latestVersion && (
+              <div className="card card-padding" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
+                        <FileCheck size={18} style={{ color: 'var(--color-success-text)' }} />
+                        <h3 className="section-title" style={{ margin: 0 }}>
+                          Active Document (v{latestVersion.versionNumber})
+                        </h3>
+                      </div>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+                        Current stored payload via StorageService
+                      </p>
+                    </div>
+                    <a
+                      href={`/api/v1/sops/${id}/versions`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-secondary btn-sm"
+                    >
+                      <FileDown size={14} />
+                      <span>Download</span>
+                    </a>
+                  </div>
+
+                  <div style={{ padding: 'var(--space-4)', background: 'var(--bg-surface-raised)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-sm)', background: 'var(--color-success-subtle)', color: 'var(--color-success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <FileText size={20} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {latestVersion.documentMetadata?.originalFilename || 'SOP_Document'}
+                      </div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+                        <span>{((latestVersion.documentMetadata?.fileSizeBytes || 0) / (1024 * 1024)).toFixed(2)} MB</span>
+                        <span>•</span>
+                        <span>{latestVersion.documentMetadata?.contentType || 'application/pdf'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>STORAGE REFERENCE POINTER</div>
+                  <div style={{ wordBreak: 'break-all' }}>{latestVersion.storageReference}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Version History Log Card */}
+            <div className="card card-padding" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+                <History size={18} style={{ color: 'var(--color-accent)' }} />
+                <h3 className="section-title" style={{ margin: 0 }}>
+                  Version History ({versions.length})
+                </h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', flex: 1, overflowY: 'auto', maxHeight: '280px' }}>
+                {versions.map((ver) => (
+                  <div 
+                    key={ver.id} 
+                    style={{ 
+                      padding: 'var(--space-3)', 
+                      borderRadius: 'var(--radius-sm)', 
+                      background: 'var(--bg-surface-raised)', 
+                      border: ver.versionNumber === sop.currentVersion ? '1px solid var(--color-accent)' : '1px solid var(--border)' 
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-1)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                        <span style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                          v{ver.versionNumber}
+                        </span>
+                        <span className={
+                          ver.workflowStatus === 'ACTIVE' ? 'badge badge-success' : 
+                          ver.workflowStatus === 'APPROVED' ? 'badge badge-accent' : 
+                          ver.workflowStatus === 'IN_REVIEW' ? 'badge badge-warning' : 'badge badge-neutral'
+                        }>
+                          {ver.workflowStatus || 'ACTIVE'}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                        {new Date(ver.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    {ver.changeSummary && (
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: 'var(--space-2)' }}>
+                        "{ver.changeSummary}"
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+                      {(!ver.workflowStatus || ver.workflowStatus === 'DRAFT') && (
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleOpenReviewModal(ver)}
+                          disabled={actionLoading}
+                        >
+                          <Clock size={12} style={{ color: 'var(--color-warning-text)' }} />
+                          <span>Review</span>
+                        </button>
+                      )}
+
+                      {ver.workflowStatus === 'IN_REVIEW' && (
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleOpenApproveModal(ver)}
+                          disabled={actionLoading}
+                        >
+                          <ShieldCheck size={12} style={{ color: 'var(--color-accent)' }} />
+                          <span>Approve</span>
+                        </button>
+                      )}
+
+                      {ver.workflowStatus === 'APPROVED' && (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleActivateVersion(ver)}
+                          disabled={actionLoading}
+                        >
+                          <CheckCircle2 size={12} />
+                          <span>Activate</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Right Column: SOP Health & Operational Drift & Storage Abstraction Info */}
-        <div>
-          {/* SOP Health & Operational Drift Card */}
-          <div className="card" style={{ marginBottom: '1.5rem', borderColor: healthAssessment && healthAssessment.healthScore < 70 ? 'rgba(244, 63, 94, 0.4)' : 'var(--border-color)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div className="card-title" style={{ margin: 0 }}>
-                <Activity size={20} color="var(--accent-cyan)" />
-                <span>SOP Health & Process Drift</span>
+        {/* Right Sidebar Column (Two Smaller Boxes Layout) */}
+        <div className="sop-details-sidebar">
+          {/* SOP Health Card */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <Activity size={18} style={{ color: 'var(--color-accent)' }} />
+                <h3 className="section-title" style={{ margin: 0 }}>
+                  Process Health
+                </h3>
               </div>
               <button 
                 onClick={handleAnalyzeHealth} 
                 disabled={analyzingHealth}
-                className="btn btn-secondary"
-                style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem', gap: '0.35rem' }}
+                className="btn btn-secondary btn-sm"
               >
-                {analyzingHealth ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play size={14} color="var(--accent-cyan)" />}
-                <span>Run Analysis</span>
+                {analyzingHealth ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play size={13} style={{ color: 'var(--color-accent)' }} />}
+                <span>Analyze</span>
               </button>
             </div>
 
             {healthAssessment ? (
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 {/* Health Score Gauge */}
-                <div style={{ background: 'var(--bg-surface-elevated)', padding: '1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>HEALTH SCORE</span>
-                    <span style={{ fontSize: '1.4rem', fontWeight: 900, color: healthAssessment.healthScore >= 80 ? 'var(--accent-emerald)' : healthAssessment.healthScore >= 50 ? 'var(--accent-amber)' : '#fb7185' }}>
-                      {healthAssessment.healthScore} / 100
+                <div style={{ background: 'var(--bg-surface-raised)', padding: 'var(--space-4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 'var(--weight-semibold)', color: 'var(--text-muted)', letterSpacing: 'var(--tracking-wider)' }}>HEALTH SCORE</span>
+                    <span style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-bold)', color: healthAssessment.healthScore >= 80 ? 'var(--color-success-text)' : healthAssessment.healthScore >= 50 ? 'var(--color-warning-text)' : 'var(--color-danger-text)' }}>
+                      {healthAssessment.healthScore} <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>/ 100</span>
                     </span>
                   </div>
-                  <div style={{ height: '8px', width: '100%', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ height: '6px', width: '100%', background: 'var(--bg-input)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
                     <div style={{ 
                       height: '100%', 
                       width: `${healthAssessment.healthScore}%`, 
-                      background: healthAssessment.healthScore >= 80 ? 'var(--accent-emerald)' : healthAssessment.healthScore >= 50 ? 'var(--accent-amber)' : '#fb7185',
+                      background: healthAssessment.healthScore >= 80 ? 'var(--color-success-text)' : healthAssessment.healthScore >= 50 ? 'var(--color-warning-text)' : 'var(--color-danger-text)',
                       transition: 'width 0.5s ease'
                     }} />
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                    <span>Cases Analyzed: {healthAssessment.totalCasesAnalyzed}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: 'var(--space-2)' }}>
+                    <span>Cases: {healthAssessment.totalCasesAnalyzed}</span>
                     <span>Deviations: {healthAssessment.deviationsFoundCount}</span>
                   </div>
                 </div>
 
-                {/* Expected vs Observed Steps Comparison */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                    EXPECTED VS OBSERVED PROCESS SEQUENCE
+                {/* Workflow Sequence */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 'var(--weight-semibold)', color: 'var(--text-muted)', letterSpacing: 'var(--tracking-wider)' }}>
+                    WORKFLOW SEQUENCE
                   </div>
 
-                  <div style={{ fontSize: '0.8rem', background: '#050811', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
-                    <div style={{ color: 'var(--accent-cyan)', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <CheckCircle size={14} />
-                      <span>Expected SOP Workflow:</span>
+                  <div style={{ fontSize: 'var(--text-xs)', background: 'var(--bg-input)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                    <div style={{ color: 'var(--color-accent)', fontWeight: 'var(--weight-semibold)', marginBottom: 'var(--space-1)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                      <CheckCircle size={13} />
+                      <span>Expected Workflow</span>
                     </div>
-                    <div style={{ color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+                    <div style={{ color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: 'var(--space-1)', alignItems: 'center' }}>
                       {healthAssessment.expectedSequence?.map((step, idx) => (
                         <React.Fragment key={idx}>
-                          <span style={{ background: 'rgba(6, 182, 212, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', color: 'var(--accent-cyan)' }}>{step}</span>
-                          {idx < healthAssessment.expectedSequence.length - 1 && <span>→</span>}
+                          <span style={{ background: 'var(--color-accent-subtle)', padding: '1px 6px', borderRadius: 'var(--radius-xs)', color: 'var(--color-accent)' }}>{step}</span>
+                          {idx < healthAssessment.expectedSequence.length - 1 && <span style={{ color: 'var(--text-muted)' }}>→</span>}
                         </React.Fragment>
                       ))}
                     </div>
                   </div>
 
-                  <div style={{ fontSize: '0.8rem', background: '#050811', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-                    <div style={{ color: healthAssessment.deviationsFoundCount > 0 ? '#fb7185' : 'var(--accent-emerald)', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Clock size={14} />
-                      <span>Observed Operational Practice:</span>
+                  <div style={{ fontSize: 'var(--text-xs)', background: 'var(--bg-input)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                    <div style={{ color: healthAssessment.deviationsFoundCount > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)', fontWeight: 'var(--weight-semibold)', marginBottom: 'var(--space-1)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                      <Clock size={13} />
+                      <span>Observed Practice</span>
                     </div>
-                    <div style={{ color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+                    <div style={{ color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: 'var(--space-1)', alignItems: 'center' }}>
                       {healthAssessment.observedSequenceSample?.map((step, idx) => (
                         <React.Fragment key={idx}>
-                          <span style={{ 
-                            background: healthAssessment.deviationsFoundCount > 0 && idx === 0 && step.toLowerCase().includes('resolve') ? 'rgba(244, 63, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)', 
-                            padding: '0.2rem 0.5rem', 
-                            borderRadius: '4px', 
-                            color: healthAssessment.deviationsFoundCount > 0 && idx === 0 && step.toLowerCase().includes('resolve') ? '#fb7185' : 'var(--text-primary)',
-                            border: healthAssessment.deviationsFoundCount > 0 && idx === 0 && step.toLowerCase().includes('resolve') ? '1px solid rgba(244, 63, 94, 0.4)' : 'none'
-                          }}>
+                          <span className={healthAssessment.deviationsFoundCount > 0 && idx === 0 && step.toLowerCase().includes('resolve') ? 'badge badge-danger' : 'badge badge-neutral'}>
                             {step}
                           </span>
-                          {idx < healthAssessment.observedSequenceSample.length - 1 && <span>→</span>}
+                          {idx < healthAssessment.observedSequenceSample.length - 1 && <span style={{ color: 'var(--text-muted)' }}>→</span>}
                         </React.Fragment>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Process Deviations List */}
-                {healthAssessment.deviations && healthAssessment.deviations.length > 0 && (
-                  <div style={{ marginBottom: '1.25rem' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb7185', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <AlertTriangle size={14} />
-                      <span>DETECTED PROCESS DEVIATIONS ({healthAssessment.deviations.length})</span>
-                    </div>
-
-                    {healthAssessment.deviations.map((dev, i) => (
-                      <div key={i} style={{ background: 'rgba(244, 63, 94, 0.06)', border: '1px solid rgba(244, 63, 94, 0.2)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginBottom: '0.5rem' }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fb7185', marginBottom: '0.25rem' }}>
-                          {dev.description}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          Case ID: {dev.caseId} • Anomaly Type: {dev.deviationType}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Action button to simulate operational evidence */}
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  style={{ width: '100%', fontSize: '0.825rem' }}
+                  className="btn btn-secondary btn-sm"
+                  style={{ width: '100%' }}
                   onClick={() => setShowSimulateModal(true)}
                 >
-                  <Plus size={14} />
-                  <span>Simulate Operational Evidence Case</span>
+                  <Plus size={13} />
+                  <span>Simulate Operational Evidence</span>
                 </button>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
-                <p style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>No operational analysis run yet.</p>
-                <button onClick={handleAnalyzeHealth} disabled={analyzingHealth} className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
-                  <Play size={14} />
-                  <span>Analyze SOP Health</span>
+              <div className="empty-state" style={{ padding: 'var(--space-6)' }}>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>No operational analysis run yet.</p>
+                <button onClick={handleAnalyzeHealth} disabled={analyzingHealth} className="btn btn-primary btn-sm">
+                  <Play size={13} />
+                  <span>Analyze Health</span>
                 </button>
               </div>
             )}
           </div>
 
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
-            <div className="card-title">
-              <HardDrive size={18} color="var(--accent-indigo)" />
-              <span>Storage Abstraction</span>
+          {/* Storage Abstraction Card */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
+              <HardDrive size={18} style={{ color: 'var(--color-accent)' }} />
+              <h3 className="section-title" style={{ margin: 0 }}>
+                Storage Abstraction
+              </h3>
             </div>
-            <p className="card-subtitle">
-              SOP file storage layer
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+              SOP storage layer architecture
             </p>
 
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 'var(--space-2)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Storage Engine:</span>
-                <strong style={{ color: 'var(--accent-cyan)' }}>LocalStorageService</strong>
+                <strong style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>LocalStorageService</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Target Persistence:</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 'var(--space-2)' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Persistence:</span>
                 <span>Docker Container Volume</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 'var(--space-2)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Max File Size:</span>
                 <span>15 MB Limit</span>
               </div>

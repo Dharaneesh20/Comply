@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { createRegulation } from '../api/regulations';
 import { RegulationStatus } from '../types/regulation';
 import { 
-  ShieldCheck, 
   ArrowLeft, 
   AlertCircle, 
   CheckCircle2, 
@@ -73,41 +72,46 @@ export const CreateRegulation: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '820px', margin: '0 auto' }}>
-      {/* Back Button */}
+    <div style={{ maxWidth: '840px' }}>
+      {/* Back navigation */}
       <button 
-        className="btn btn-secondary" 
+        className="btn btn-ghost btn-sm" 
         onClick={() => navigate('/regulations')} 
-        style={{ marginBottom: '1.5rem', padding: '0.4rem 0.85rem' }}
+        style={{ marginBottom: 'var(--space-5)' }}
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={14} />
         <span>Back to Regulations Library</span>
       </button>
 
-      <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-sm)', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldCheck size={24} />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Create Regulatory Framework</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-              Add a new regulatory standard or statutory compliance framework entry to MongoDB.
-            </p>
-          </div>
+      {/* Page Header */}
+      <div className="page-header" style={{ marginBottom: 'var(--space-6)' }}>
+        <h2 className="page-title">New Regulatory Framework</h2>
+        <p className="page-subtitle">Add a new statutory compliance standard or regulatory benchmark entry.</p>
+      </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: 'var(--space-5)' }}>
+          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <span>{error}</span>
         </div>
+      )}
 
-        {error && (
-          <div style={{ padding: '1rem', background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: 'var(--radius-sm)', color: '#fb7185', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={18} />
-            <span>{error}</span>
-          </div>
-        )}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+        {/* Section 1: Overview & Primary Info */}
+        <div className="card card-padding">
+          <h3 style={{
+            fontSize: 'var(--text-xs)',
+            fontWeight: 'var(--weight-semibold)',
+            color: 'var(--text-muted)',
+            letterSpacing: 'var(--tracking-wider)',
+            textTransform: 'uppercase',
+            marginBottom: 'var(--space-4)',
+          }}>
+            Framework Details
+          </h3>
 
-        <form onSubmit={handleSubmit}>
-          {/* Title */}
           <div className="form-group">
-            <label className="form-label">Regulation Title *</label>
+            <label className="form-label form-label-required">Regulation Title</label>
             <input
               type="text"
               className="form-input"
@@ -118,38 +122,49 @@ export const CreateRegulation: React.FC = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-            {/* Jurisdiction */}
-            <div className="form-group">
-              <label className="form-label">Jurisdiction *</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label form-label-required">Jurisdiction</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. European Union, United States, Global"
+                placeholder="e.g. European Union, Global"
                 value={jurisdiction}
                 onChange={(e) => setJurisdiction(e.target.value)}
                 required
               />
             </div>
 
-            {/* Authority */}
-            <div className="form-group">
-              <label className="form-label">Governing Authority *</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label form-label-required">Governing Authority</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. FDA, SEC, EU Parliament, HHS"
+                placeholder="e.g. FDA, SEC, EU Parliament"
                 value={authority}
                 onChange={(e) => setAuthority(e.target.value)}
                 required
               />
             </div>
           </div>
+        </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-            {/* Category */}
-            <div className="form-group">
-              <label className="form-label">Category *</label>
+        {/* Section 2: Classification & Status */}
+        <div className="card card-padding">
+          <h3 style={{
+            fontSize: 'var(--text-xs)',
+            fontWeight: 'var(--weight-semibold)',
+            color: 'var(--text-muted)',
+            letterSpacing: 'var(--tracking-wider)',
+            textTransform: 'uppercase',
+            marginBottom: 'var(--space-4)',
+          }}>
+            Classification & Status
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label form-label-required">Category</label>
               <select
                 className="form-select"
                 value={category}
@@ -165,9 +180,8 @@ export const CreateRegulation: React.FC = () => {
               </select>
             </div>
 
-            {/* Status */}
-            <div className="form-group">
-              <label className="form-label">Status *</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label form-label-required">Lifecycle Status</label>
               <select
                 className="form-select"
                 value={status}
@@ -181,10 +195,23 @@ export const CreateRegulation: React.FC = () => {
               </select>
             </div>
           </div>
+        </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-            {/* Publication Date */}
-            <div className="form-group">
+        {/* Section 3: Dates & References */}
+        <div className="card card-padding">
+          <h3 style={{
+            fontSize: 'var(--text-xs)',
+            fontWeight: 'var(--weight-semibold)',
+            color: 'var(--text-muted)',
+            letterSpacing: 'var(--tracking-wider)',
+            textTransform: 'uppercase',
+            marginBottom: 'var(--space-4)',
+          }}>
+            Dates & Identifiers
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Official Publication Date</label>
               <input
                 type="date"
@@ -194,8 +221,7 @@ export const CreateRegulation: React.FC = () => {
               />
             </div>
 
-            {/* Effective Date */}
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Enforcement / Effective Date</label>
               <input
                 type="date"
@@ -206,22 +232,20 @@ export const CreateRegulation: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-            {/* Source ID */}
-            <div className="form-group">
-              <label className="form-label">Source Reference Identifier</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Source Reference ID</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. CELEX_32016R0679 or 45 CFR Part 164"
+                placeholder="e.g. CELEX_32016R0679"
                 value={sourceId}
                 onChange={(e) => setSourceId(e.target.value)}
               />
             </div>
 
-            {/* Initial Version Document Reference */}
-            <div className="form-group">
-              <label className="form-label">Initial Version Reference (v1)</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Initial Version Ref (v1)</label>
               <input
                 type="text"
                 className="form-input"
@@ -231,37 +255,37 @@ export const CreateRegulation: React.FC = () => {
               />
             </div>
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-color)' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate('/regulations')}
-              disabled={submitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={submitting}
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Saving Regulation...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 size={18} />
-                  <span>Save & Initialize Version 1</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', paddingTop: 'var(--space-2)' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => navigate('/regulations')}
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Saving Regulation…</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={16} />
+                <span>Save Framework</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

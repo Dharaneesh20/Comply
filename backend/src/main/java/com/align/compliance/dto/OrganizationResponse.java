@@ -18,6 +18,9 @@ public class OrganizationResponse {
     @Schema(description = "Organization Domain", example = "acme.com")
     private String domain;
 
+    @Schema(description = "Organization Logo URL or base64 data", example = "https://example.com/logo.png")
+    private String logoUrl;
+
     @Schema(description = "Organization Status", example = "ACTIVE")
     private String status;
 
@@ -30,14 +33,19 @@ public class OrganizationResponse {
     public OrganizationResponse() {
     }
 
-    public OrganizationResponse(String id, String name, String slug, String domain, String status, String memberRole, Instant createdAt) {
+    public OrganizationResponse(String id, String name, String slug, String domain, String logoUrl, String status, String memberRole, Instant createdAt) {
         this.id = id;
         this.name = name;
         this.slug = slug;
         this.domain = domain;
+        this.logoUrl = logoUrl;
         this.status = status;
         this.memberRole = memberRole;
         this.createdAt = createdAt;
+    }
+
+    public OrganizationResponse(String id, String name, String slug, String domain, String status, String memberRole, Instant createdAt) {
+        this(id, name, slug, domain, null, status, memberRole, createdAt);
     }
 
     public String getId() {
@@ -70,6 +78,14 @@ public class OrganizationResponse {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     public String getStatus() {

@@ -20,6 +20,8 @@ public class Organization {
 
     private String domain;
 
+    private String logoUrl;
+
     private String status = "ACTIVE";
 
     @Field("created_at")
@@ -67,6 +69,14 @@ public class Organization {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     public String getStatus() {

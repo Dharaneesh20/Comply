@@ -15,14 +15,14 @@ interface HeaderProps {
 const ROUTE_TITLES: Record<string, string> = {
   '/dashboard':              'Overview',
   '/sops':                   'SOPs',
-  '/sops/new':               'New SOP',
-  '/regulations':            'Regulations',
-  '/regulations/new':        'New Regulation',
+  '/sops/new':               'Create SOP',
+  '/regulations':            'Regulations Library',
+  '/regulations/new':        'Create Regulation',
   '/findings':               'Findings',
   '/regulatory-changes':     'Regulatory Changes',
   '/remediations':           'Remediation',
   '/audit':                  'Audit Log',
-  '/settings/security':      'Security',
+  '/settings/security':      'Security & Privacy',
   '/organizations':          'Organizations',
 };
 
@@ -105,10 +105,32 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="header-divider" aria-hidden="true" />
 
-        {/* Org selector */}
+        {/* Org selector with custom logo thumbnail */}
         {user && organizations.length > 0 && (
-          <div className="org-selector">
-            <Building2 size={14} color="var(--text-muted)" aria-hidden="true" />
+          <div className="org-selector" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: '4px',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-surface-raised)',
+                flexShrink: 0,
+              }}
+            >
+              {currentOrganization?.logoUrl ? (
+                <img
+                  src={currentOrganization.logoUrl}
+                  alt={currentOrganization.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Building2 size={13} color="var(--text-muted)" aria-hidden="true" />
+              )}
+            </div>
             <select
               id="org-selector"
               value={currentOrganization?.id || ''}

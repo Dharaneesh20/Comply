@@ -1,7 +1,7 @@
 import { apiClient } from './client';
 import { Organization } from '../types';
 
-export const createOrganization = async (data: { name: string; slug: string; domain?: string }): Promise<Organization> => {
+export const createOrganization = async (data: { name: string; slug: string; domain?: string; logoUrl?: string }): Promise<Organization> => {
   const response = await apiClient.post<Organization>('/api/v1/organizations', data);
   return response.data;
 };

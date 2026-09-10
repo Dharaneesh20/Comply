@@ -19,6 +19,9 @@ public class CreateOrganizationRequest {
     @Schema(description = "Associated email domain", example = "acme.com")
     private String domain;
 
+    @Schema(description = "Organization logo URL or base64 data", example = "https://example.com/logo.png")
+    private String logoUrl;
+
     public CreateOrganizationRequest() {
     }
 
@@ -50,5 +53,13 @@ public class CreateOrganizationRequest {
 
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 }

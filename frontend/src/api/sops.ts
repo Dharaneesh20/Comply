@@ -40,13 +40,20 @@ export const uploadSOP = async (
   nextReviewAt?: string
 ): Promise<SOP> => {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('title', title);
-  formData.append('department', department);
-  if (description) formData.append('description', description);
-  if (nextReviewAt) formData.append('nextReviewAt', nextReviewAt);
 
-  const response = await apiClient.post<SOP>('/api/v1/sops/upload', formData, {
+  const metadata = {
+    title,
+    organizationId: orgId,
+    department,
+    description: description || undefined,
+    nextReviewAt: nextReviewAt || undefined,
+  };
+
+  const jsonBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+  formData.append('data', jsonBlob);
+  formData.append('file', file);
+
+  const response = await apiClient.post<SOP>('/api/v1/sops', formData, {
     headers: {
       'X-Organization-Id': orgId,
       'Content-Type': 'multipart/form-data',

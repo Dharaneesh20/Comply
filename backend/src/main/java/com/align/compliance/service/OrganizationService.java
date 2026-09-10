@@ -36,6 +36,7 @@ public class OrganizationService {
                 request.getSlug(),
                 request.getDomain()
         );
+        organization.setLogoUrl(request.getLogoUrl());
 
         Organization savedOrg = organizationRepository.save(organization);
 
@@ -71,6 +72,7 @@ public class OrganizationService {
                 org.getName(),
                 org.getSlug(),
                 org.getDomain(),
+                org.getLogoUrl(),
                 org.getStatus(),
                 memberRole,
                 org.getCreatedAt()

@@ -6,15 +6,18 @@ import { Building2, Plus, CheckCircle2, ArrowRight, AlertCircle, X } from 'lucid
 
 export const OrganizationsPage: React.FC = () => {
   const { organizations, currentOrganization, setCurrentOrganization, refreshOrganizations } = useAuth();
-  const [name, setName]   = useState('');
-  const [slug, setSlug]   = useState('');
-  const [domain, setDomain] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [name, setName]         = useState('');
+  const [slug, setSlug]         = useState('');
+  const [domain, setDomain]     = useState('');
+  const [logoUrl, setLogoUrl]   = useState('');
+  const [error, setError]       = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => { refreshOrganizations(); }, []);
+  useEffect(() => {
+    refreshOrganizations();
+  }, []);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
@@ -22,16 +25,35 @@ export const OrganizationsPage: React.FC = () => {
     setSlug(v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
     try {
-      const newOrg = await createOrganization({ name, slug, domain: domain || undefined });
+      const newOrg = await createOrganization({
+        name,
+        slug,
+        domain: domain || undefined,
+        logoUrl: logoUrl || undefined,
+      });
       await refreshOrganizations();
       setCurrentOrganization(newOrg);
       setShowModal(false);
-      setName(''); setSlug(''); setDomain('');
+      setName('');
+      setSlug('');
+      setDomain('');
+      setLogoUrl('');
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create organization.');
@@ -48,12 +70,14 @@ export const OrganizationsPage: React.FC = () => {
   const handleClose = () => {
     setShowModal(false);
     setError(null);
-    setName(''); setSlug(''); setDomain('');
+    setName('');
+    setSlug('');
+    setDomain('');
+    setLogoUrl('');
   };
 
   return (
     <div>
-      {/* Page header */}
       <div className="page-header">
         <div className="page-header-inner">
           <div className="page-header-text">
@@ -71,14 +95,13 @@ export const OrganizationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Empty state */}
       {organizations.length === 0 ? (
         <div className="card">
           <div className="empty-state">
             <Building2 size={36} className="empty-state-icon" />
             <h3 className="empty-state-title">No organizations</h3>
             <p className="empty-state-description">
-              Create your first organization to begin your compliance journey. You'll be assigned as Admin.
+              Create your first organization to begin your compliance journey. You will be assigned as Admin.
             </p>
             <button className="btn btn-primary" onClick={() => setShowModal(true)}>
               <Plus size={15} />
@@ -87,35 +110,44 @@ export const OrganizationsPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Organization cards grid */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-          {organizations.map(org => {
+          {organizations.map((org) => {
             const isActive = currentOrganization?.id === org.id;
             return (
               <div
                 key={org.id}
                 className="card card-padding card-clickable"
                 style={{
-                  border: `1px solid ${isActive ? 'var(--color-accent)' : 'var(--border)'}`,
+                  border: isActive ? '1px solid var(--color-accent)' : '1px solid var(--border)',
                   background: isActive ? 'var(--color-accent-subtle)' : 'var(--bg-surface)',
                   cursor: 'pointer',
                 }}
                 onClick={() => handleSelect(org)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={e => e.key === 'Enter' && handleSelect(org)}
-                aria-label={`Select ${org.name}`}
-                aria-current={isActive ? 'true' : undefined}
+                onKeyDown={(e) => e.key === 'Enter' && handleSelect(org)}
+                aria-label={'Select ' + org.name}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 'var(--radius-sm)',
-                      background: isActive ? 'var(--color-accent)' : 'var(--bg-surface-raised)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: isActive ? 'white' : 'var(--text-secondary)',
-                    }}>
-                      <Building2 size={20} />
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 'var(--radius-sm)',
+                        background: isActive ? 'var(--color-accent)' : 'var(--bg-surface-raised)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: isActive ? 'white' : 'var(--text-secondary)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {org.logoUrl ? (
+                        <img src={org.logoUrl} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Building2 size={20} />
+                      )}
                     </div>
                     <div>
                       <div style={{ fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', fontSize: 'var(--text-md)' }}>
@@ -134,19 +166,21 @@ export const OrganizationsPage: React.FC = () => {
                   )}
                 </div>
 
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: 'var(--space-3)',
-                  borderTop: '1px solid var(--border)',
-                  fontSize: 'var(--text-xs)',
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: 'var(--space-3)',
+                    borderTop: '1px solid var(--border)',
+                    fontSize: 'var(--text-xs)',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                     <span className="badge badge-accent" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
                       {org.memberRole}
                     </span>
-                    <span className={`badge ${org.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: 'var(--text-xs)' }}>
+                    <span className={org.status === 'ACTIVE' ? 'badge badge-success' : 'badge badge-neutral'} style={{ fontSize: 'var(--text-xs)' }}>
                       {org.status}
                     </span>
                   </div>
@@ -158,17 +192,16 @@ export const OrganizationsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Create Organization Modal */}
       {showModal && (
         <div className="modal-backdrop" onClick={handleClose} role="dialog" aria-modal="true" aria-labelledby="create-org-title">
-          <div className="modal-card" onClick={e => e.stopPropagation()}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)' }}>
               <div>
                 <h2 id="create-org-title" style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-bold)', color: 'var(--text-primary)', letterSpacing: 'var(--tracking-tight)' }}>
                   New organization
                 </h2>
                 <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: 'var(--space-1)' }}>
-                  You'll be assigned as Admin.
+                  You will be assigned as Admin.
                 </p>
               </div>
               <button className="header-icon-btn" onClick={handleClose} aria-label="Close dialog">
@@ -184,6 +217,49 @@ export const OrganizationsPage: React.FC = () => {
             )}
 
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Organization Logo (optional)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+                  <div
+                    style={{
+                      width: 54,
+                      height: 54,
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px dashed var(--border-strong)',
+                      background: 'var(--bg-surface-raised)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Building2 size={24} color="var(--text-muted)" />
+                    )}
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                    <input
+                      type="file"
+                      id="org-logo-file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}
+                    />
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="or paste image URL..."
+                      value={logoUrl}
+                      onChange={(e) => setLogoUrl(e.target.value)}
+                      style={{ fontSize: 'var(--text-xs)', padding: '6px 10px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label form-label-required" htmlFor="org-name">Organization name</label>
                 <input
@@ -205,7 +281,7 @@ export const OrganizationsPage: React.FC = () => {
                   pattern="^[a-z0-9-]+$"
                   className="form-input"
                   value={slug}
-                  onChange={e => setSlug(e.target.value)}
+                  onChange={(e) => setSlug(e.target.value)}
                   placeholder="acme-compliance"
                 />
                 <div className="form-description">Lowercase letters, numbers, and hyphens only.</div>
@@ -217,7 +293,7 @@ export const OrganizationsPage: React.FC = () => {
                   type="text"
                   className="form-input"
                   value={domain}
-                  onChange={e => setDomain(e.target.value)}
+                  onChange={(e) => setDomain(e.target.value)}
                   placeholder="acme.com"
                 />
               </div>
@@ -227,7 +303,7 @@ export const OrganizationsPage: React.FC = () => {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={isSubmitting} id="create-org-submit">
-                  {isSubmitting ? 'Creating…' : 'Create workspace'}
+                  {isSubmitting ? 'Creating...' : 'Create workspace'}
                 </button>
               </div>
             </form>
