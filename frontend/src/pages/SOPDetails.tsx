@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getSOPById, getSOPVersions, createSOPVersion, archiveSOP } from '../api/sops';
 import { getRequirementsForSOP, deleteMapping } from '../api/mappings';
+import { getSOPHealth, analyzeSOPHealth, submitObservation } from '../api/sopHealth';
 import { SOP, SOPVersion } from '../types/sop';
 import { MappedRequirementDetailResponse, MappingType } from '../types/mapping';
+import { SOPHealthAssessment } from '../types/sopHealth';
 import { 
   FileText, 
   ArrowLeft, 
@@ -25,7 +27,12 @@ import {
   ShieldCheck,
   Link2,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Activity,
+  AlertTriangle,
+  Play,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 
 export const SOPDetails: React.FC = () => {
@@ -37,9 +44,17 @@ export const SOPDetails: React.FC = () => {
   const [sop, setSop] = useState<SOP | null>(null);
   const [versions, setVersions] = useState<SOPVersion[]>([]);
   const [mappedRequirements, setMappedRequirements] = useState<MappedRequirementDetailResponse[]>([]);
+  const [healthAssessment, setHealthAssessment] = useState<SOPHealthAssessment | null>(null);
   
   const [loading, setLoading] = useState<boolean>(true);
+  const [analyzingHealth, setAnalyzingHealth] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Operational Simulation Modal state
+  const [showSimulateModal, setShowSimulateModal] = useState<boolean>(false);
+  const [simCaseId, setSimCaseId] = useState<string>('CASE-SIM-' + Math.floor(Math.random() * 1000));
+  const [simStepsText, setSimStepsText] = useState<string>("Resolve Issue -> Create Support Ticket -> Close Ticket");
+  const [submittingSim, setSubmittingSim] = useState<boolean>(false);
 
   // New Version Modal state
   const [showVersionModal, setShowVersionModal] = useState<boolean>(false);
@@ -56,18 +71,56 @@ export const SOPDetails: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const [sopData, versionsData, reqsData] = await Promise.all([
+      const [sopData, versionsData, reqsData, healthData] = await Promise.all([
         getSOPById(currentOrganization.id, id),
         getSOPVersions(currentOrganization.id, id),
         getRequirementsForSOP(currentOrganization.id, id),
+        getSOPHealth(id).catch(() => null)
       ]);
       setSop(sopData);
       setVersions(versionsData.sort((a, b) => b.versionNumber - a.versionNumber));
       setMappedRequirements(reqsData);
+      setHealthAssessment(healthData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load SOP details.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAnalyzeHealth = async () => {
+    if (!id) return;
+    try {
+      setAnalyzingHealth(true);
+      const updatedHealth = await analyzeSOPHealth(id);
+      setHealthAssessment(updatedHealth);
+    } catch (err: any) {
+      alert('Failed to analyze SOP health.');
+    } finally {
+      setAnalyzingHealth(false);
+    }
+  };
+
+  const handleSubmitSimulation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    try {
+      setSubmittingSim(true);
+      const rawSteps = simStepsText.split('->').map(s => s.trim()).filter(Boolean);
+      const stepsPayload = rawSteps.map(s => ({ eventType: s, source: 'SIMULATED_LOG' }));
+      
+      await submitObservation({
+        sopId: id,
+        caseId: simCaseId,
+        steps: stepsPayload
+      });
+
+      setShowSimulateModal(false);
+      await handleAnalyzeHealth();
+    } catch (err: any) {
+      alert('Failed to submit simulation.');
+    } finally {
+      setSubmittingSim(false);
     }
   };
 
@@ -436,8 +489,138 @@ export const SOPDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Storage Abstraction Info & Quick Actions */}
+        {/* Right Column: SOP Health & Operational Drift & Storage Abstraction Info */}
         <div>
+          {/* SOP Health & Operational Drift Card */}
+          <div className="card" style={{ marginBottom: '1.5rem', borderColor: healthAssessment && healthAssessment.healthScore < 70 ? 'rgba(244, 63, 94, 0.4)' : 'var(--border-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div className="card-title" style={{ margin: 0 }}>
+                <Activity size={20} color="var(--accent-cyan)" />
+                <span>SOP Health & Process Drift</span>
+              </div>
+              <button 
+                onClick={handleAnalyzeHealth} 
+                disabled={analyzingHealth}
+                className="btn btn-secondary"
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem', gap: '0.35rem' }}
+              >
+                {analyzingHealth ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play size={14} color="var(--accent-cyan)" />}
+                <span>Run Analysis</span>
+              </button>
+            </div>
+
+            {healthAssessment ? (
+              <div>
+                {/* Health Score Gauge */}
+                <div style={{ background: 'var(--bg-surface-elevated)', padding: '1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>HEALTH SCORE</span>
+                    <span style={{ fontSize: '1.4rem', fontWeight: 900, color: healthAssessment.healthScore >= 80 ? 'var(--accent-emerald)' : healthAssessment.healthScore >= 50 ? 'var(--accent-amber)' : '#fb7185' }}>
+                      {healthAssessment.healthScore} / 100
+                    </span>
+                  </div>
+                  <div style={{ height: '8px', width: '100%', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ 
+                      height: '100%', 
+                      width: `${healthAssessment.healthScore}%`, 
+                      background: healthAssessment.healthScore >= 80 ? 'var(--accent-emerald)' : healthAssessment.healthScore >= 50 ? 'var(--accent-amber)' : '#fb7185',
+                      transition: 'width 0.5s ease'
+                    }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                    <span>Cases Analyzed: {healthAssessment.totalCasesAnalyzed}</span>
+                    <span>Deviations: {healthAssessment.deviationsFoundCount}</span>
+                  </div>
+                </div>
+
+                {/* Expected vs Observed Steps Comparison */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                    EXPECTED VS OBSERVED PROCESS SEQUENCE
+                  </div>
+
+                  <div style={{ fontSize: '0.8rem', background: '#050811', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
+                    <div style={{ color: 'var(--accent-cyan)', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <CheckCircle size={14} />
+                      <span>Expected SOP Workflow:</span>
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+                      {healthAssessment.expectedSequence?.map((step, idx) => (
+                        <React.Fragment key={idx}>
+                          <span style={{ background: 'rgba(6, 182, 212, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', color: 'var(--accent-cyan)' }}>{step}</span>
+                          {idx < healthAssessment.expectedSequence.length - 1 && <span>→</span>}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.8rem', background: '#050811', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                    <div style={{ color: healthAssessment.deviationsFoundCount > 0 ? '#fb7185' : 'var(--accent-emerald)', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Clock size={14} />
+                      <span>Observed Operational Practice:</span>
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+                      {healthAssessment.observedSequenceSample?.map((step, idx) => (
+                        <React.Fragment key={idx}>
+                          <span style={{ 
+                            background: healthAssessment.deviationsFoundCount > 0 && idx === 0 && step.toLowerCase().includes('resolve') ? 'rgba(244, 63, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)', 
+                            padding: '0.2rem 0.5rem', 
+                            borderRadius: '4px', 
+                            color: healthAssessment.deviationsFoundCount > 0 && idx === 0 && step.toLowerCase().includes('resolve') ? '#fb7185' : 'var(--text-primary)',
+                            border: healthAssessment.deviationsFoundCount > 0 && idx === 0 && step.toLowerCase().includes('resolve') ? '1px solid rgba(244, 63, 94, 0.4)' : 'none'
+                          }}>
+                            {step}
+                          </span>
+                          {idx < healthAssessment.observedSequenceSample.length - 1 && <span>→</span>}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Process Deviations List */}
+                {healthAssessment.deviations && healthAssessment.deviations.length > 0 && (
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb7185', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <AlertTriangle size={14} />
+                      <span>DETECTED PROCESS DEVIATIONS ({healthAssessment.deviations.length})</span>
+                    </div>
+
+                    {healthAssessment.deviations.map((dev, i) => (
+                      <div key={i} style={{ background: 'rgba(244, 63, 94, 0.06)', border: '1px solid rgba(244, 63, 94, 0.2)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginBottom: '0.5rem' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fb7185', marginBottom: '0.25rem' }}>
+                          {dev.description}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          Case ID: {dev.caseId} • Anomaly Type: {dev.deviationType}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action button to simulate operational evidence */}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ width: '100%', fontSize: '0.825rem' }}
+                  onClick={() => setShowSimulateModal(true)}
+                >
+                  <Plus size={14} />
+                  <span>Simulate Operational Evidence Case</span>
+                </button>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
+                <p style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>No operational analysis run yet.</p>
+                <button onClick={handleAnalyzeHealth} disabled={analyzingHealth} className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
+                  <Play size={14} />
+                  <span>Analyze SOP Health</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div className="card-title">
               <HardDrive size={18} color="var(--accent-indigo)" />
@@ -555,6 +738,77 @@ export const SOPDetails: React.FC = () => {
                     <>
                       <CheckCircle2 size={16} />
                       <span>Commit Version {sop.currentVersion + 1}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Simulate Operational Evidence Modal */}
+      {showSimulateModal && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Activity size={20} color="var(--accent-cyan)" />
+                <span>Simulate Operational Evidence Case</span>
+              </h3>
+              <button onClick={() => setShowSimulateModal(false)} style={{ color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitSimulation}>
+              <div className="form-group">
+                <label className="form-label">Case Identifier *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={simCaseId}
+                  onChange={(e) => setSimCaseId(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Observed Event Sequence (Separated by -&gt;) *</label>
+                <textarea
+                  className="form-textarea"
+                  rows={3}
+                  value={simStepsText}
+                  onChange={(e) => setSimStepsText(e.target.value)}
+                  required
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem', display: 'block' }}>
+                  Example out-of-order sequence: <code>Resolve Issue -&gt; Create Support Ticket -&gt; Close Ticket</code>
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowSimulateModal(false)}
+                  disabled={submittingSim}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={submittingSim}
+                >
+                  {submittingSim ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play size={16} />
+                      <span>Run Operational Analysis</span>
                     </>
                   )}
                 </button>
