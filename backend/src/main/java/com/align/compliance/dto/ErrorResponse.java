@@ -1,27 +1,30 @@
 package com.align.compliance.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
-import java.util.List;
 
+@Schema(description = "Error Response Details")
 public class ErrorResponse {
+
+    @Schema(description = "HTTP Status Code", example = "400")
     private int status;
+
+    @Schema(description = "Error Title", example = "Bad Request")
     private String error;
+
+    @Schema(description = "Detailed Error Message", example = "Email already registered")
     private String message;
-    private String path;
-    private Instant timestamp;
-    private List<String> details;
+
+    @Schema(description = "Timestamp of error", example = "2026-09-10T10:30:00Z")
+    private Instant timestamp = Instant.now();
 
     public ErrorResponse() {
-        this.timestamp = Instant.now();
     }
 
-    public ErrorResponse(int status, String error, String message, String path, List<String> details) {
+    public ErrorResponse(int status, String error, String message) {
         this.status = status;
         this.error = error;
         this.message = message;
-        this.path = path;
-        this.timestamp = Instant.now();
-        this.details = details;
     }
 
     public int getStatus() {
@@ -48,27 +51,11 @@ public class ErrorResponse {
         this.message = message;
     }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
     public Instant getTimestamp() {
         return timestamp;
     }
 
     public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public List<String> getDetails() {
-        return details;
-    }
-
-    public void setDetails(List<String> details) {
-        this.details = details;
     }
 }

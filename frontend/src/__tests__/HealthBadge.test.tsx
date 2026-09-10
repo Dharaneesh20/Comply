@@ -17,4 +17,28 @@ describe('HealthBadge Component', () => {
     render(<HealthBadge state="checking" />);
     expect(screen.getByText('Backend: Checking...')).toBeDefined();
   });
+
+  it('renders MongoDB Connected badge when healthData is UP', () => {
+    render(
+      <HealthBadge
+        state="online"
+        healthData={{ application: 'UP', database: 'UP' }}
+        showDetails={true}
+      />
+    );
+    expect(screen.getByText('Backend: Online')).toBeDefined();
+    expect(screen.getByText('MongoDB: Connected')).toBeDefined();
+  });
+
+  it('renders MongoDB Disconnected badge when healthData database is DOWN', () => {
+    render(
+      <HealthBadge
+        state="online"
+        healthData={{ application: 'UP', database: 'DOWN' }}
+        showDetails={true}
+      />
+    );
+    expect(screen.getByText('Backend: Online')).toBeDefined();
+    expect(screen.getByText('MongoDB: Disconnected')).toBeDefined();
+  });
 });

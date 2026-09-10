@@ -1,34 +1,33 @@
 package com.align.compliance.model;
 
-import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.UUID;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 
-@Entity
-@Table(name = "organization_members", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"organization_id", "user_id"})
-})
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.time.Instant;
+
+@Document(collection = "organization_members")
+@CompoundIndex(name = "org_user_idx", def = "{'organization': 1, 'user': 1}", unique = true)
 public class OrganizationMember {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "organization_id", nullable = false)
+    @DBRef
     private Organization organization;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @DBRef
     private User user;
 
-    @Column(name = "member_role", nullable = false)
+    @Field("member_role")
     private String memberRole = "MEMBER";
 
-    @Column(nullable = false)
     private String status = "ACTIVE";
 
-    @Column(name = "joined_at", nullable = false, updatable = false)
+    @Field("joined_at")
     private Instant joinedAt = Instant.now();
 
     public OrganizationMember() {
@@ -40,11 +39,11 @@ public class OrganizationMember {
         this.memberRole = memberRole;
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

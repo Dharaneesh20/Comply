@@ -1,33 +1,31 @@
 package com.align.compliance.model;
 
-import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.UUID;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@Entity
-@Table(name = "organizations")
+import java.time.Instant;
+
+@Document(collection = "organizations")
 public class Organization {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Indexed(unique = true)
     private String slug;
 
-    @Column
     private String domain;
 
-    @Column(nullable = false)
     private String status = "ACTIVE";
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Field("created_at")
     private Instant createdAt = Instant.now();
 
-    @Column(name = "updated_at", nullable = false)
+    @Field("updated_at")
     private Instant updatedAt = Instant.now();
 
     public Organization() {
@@ -39,11 +37,11 @@ public class Organization {
         this.domain = domain;
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -93,10 +91,5 @@ public class Organization {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    @PreUpdate
-    public void onUpdate() {
-        this.updatedAt = Instant.now();
     }
 }

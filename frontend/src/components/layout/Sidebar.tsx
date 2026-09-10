@@ -2,12 +2,11 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
+  Building2,
   ShieldCheck, 
   FileText, 
   GitBranch, 
-  AlertTriangle, 
-  LogIn, 
-  Settings
+  AlertTriangle
 } from 'lucide-react';
 import { ConnectionState, HealthStatusResponse } from '../../types';
 import { HealthBadge } from '../HealthBadge';
@@ -40,61 +39,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ healthState, healthData }) => 
         </NavLink>
 
         <NavLink 
+          to="/organizations" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+        >
+          <Building2 size={18} />
+          <span>Organizations</span>
+        </NavLink>
+
+        <div style={{ margin: '1.5rem 0 0.5rem 0.75rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>
+          COMPLIANCE MODULES
+        </div>
+
+        <NavLink 
           to="/regulations" 
-          className="sidebar-item" 
-          style={{ opacity: 0.5, pointerEvents: 'none' }}
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
         >
           <ShieldCheck size={18} />
-          <span>Regulations (Phase 1)</span>
+          <span>Regulations</span>
         </NavLink>
 
         <NavLink 
-          to="/policies" 
-          className="sidebar-item" 
-          style={{ opacity: 0.5, pointerEvents: 'none' }}
+          to="/sops" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
         >
           <FileText size={18} />
           <span>Policies & SOPs</span>
         </NavLink>
 
-        <NavLink 
-          to="/workflows" 
-          className="sidebar-item" 
-          style={{ opacity: 0.5, pointerEvents: 'none' }}
-        >
+        <div className="sidebar-item" style={{ opacity: 0.4, cursor: 'not-allowed' }}>
           <GitBranch size={18} />
           <span>Workflows</span>
-        </NavLink>
-
-        <NavLink 
-          to="/findings" 
-          className="sidebar-item" 
-          style={{ opacity: 0.5, pointerEvents: 'none' }}
-        >
-          <AlertTriangle size={18} />
-          <span>Findings</span>
-        </NavLink>
-
-        <div style={{ margin: '1.5rem 0 0.5rem 0.75rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>
-          SYSTEM & AUTH
         </div>
 
-        <NavLink 
-          to="/login" 
-          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
-        >
-          <LogIn size={18} />
-          <span>Login (Placeholder)</span>
-        </NavLink>
-
-        <NavLink 
-          to="/settings" 
-          className="sidebar-item" 
-          style={{ opacity: 0.5, pointerEvents: 'none' }}
-        >
-          <Settings size={18} />
-          <span>Settings</span>
-        </NavLink>
+        <div className="sidebar-item" style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+          <AlertTriangle size={18} />
+          <span>Findings</span>
+        </div>
       </nav>
 
       <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>

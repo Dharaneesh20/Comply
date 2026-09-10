@@ -1,14 +1,13 @@
 package com.align.compliance.repository;
 
 import com.align.compliance.model.Organization;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface OrganizationRepository extends JpaRepository<Organization, UUID> {
+public interface OrganizationRepository extends MongoRepository<Organization, String> {
     Optional<Organization> findBySlug(String slug);
     boolean existsBySlug(String slug);
 }

@@ -1,0 +1,53 @@
+services:
+  mongodb:
+    image: mongo:8
+    container_name: align-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-align_user}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-align_password}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-align_db}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: align-backend
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      PORT: 8081
+      MONGO_URI: mongodb://${MONGO_USERNAME:-align_user}:${MONGO_PASSWORD:-align_password}@mongodb:27017/${MONGO_DATABASE:-align_db}?authSource=admin
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/api/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: align-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

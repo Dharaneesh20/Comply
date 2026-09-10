@@ -1,49 +1,63 @@
 # Align — Privacy-First Regulatory & SOP Compliance Intelligence Platform
 
-Align is an enterprise compliance platform designed to map regulations → requirements → company policies → SOPs → actual workflows → compliance findings → remediation.
+Align is an enterprise compliance intelligence platform designed to map regulations → requirements → company policies → SOPs → actual workflows → compliance findings → remediation.
 
 ---
 
 ## Monorepo Architecture
 
-```
+```text
 /
 ├── docs/                # Architectural & domain documentation
-├── infrastructure/      # Local development Docker Compose services
-│   └── docker-compose.yml
-├── backend/             # Java 21 + Spring Boot 3 REST API engine
-└── frontend/            # React + TypeScript + Vite web client
+├── backend/             # Java 21 + Spring Boot 3 REST API + Spring Data MongoDB
+├── frontend/            # React + TypeScript + Vite web client
+├── docker-compose.yml   # Multi-container orchestration (frontend, backend, mongodb)
+└── .env.example         # Environment template
 ```
 
 ---
 
 ## Prerequisites
 
-- **Java JDK 17+** (JDK 21 recommended)
+- **Java JDK 21+**
 - **Node.js 18+** & npm
-- **Docker Desktop** (for PostgreSQL local database)
+- **Docker Desktop / Docker Engine** (for running MongoDB or full stack containers)
 
 ---
 
-## Phase 0 Quick Start Guide
-
-### 1. Start Infrastructure (PostgreSQL)
+## Quick Start (Docker Compose)
 
 From the project root:
 
 ```bash
-docker compose -f infrastructure/docker-compose.yml up -d
+docker compose up -d
 ```
 
-Verify that PostgreSQL container `align-postgres` is healthy:
+Verify running containers:
 
 ```bash
-docker ps
+docker compose ps
 ```
+
+- **Frontend Application**: [http://localhost:3000](http://localhost:3000)
+- **Backend API Health**: [http://localhost:8080/api/v1/health](http://localhost:8080/api/v1/health)
+- **OpenAPI / Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ---
 
-## 2. Backend Setup & Startup
+## Local Development (Without Docker Compose)
+
+### 1. Start MongoDB Container
+
+```bash
+docker run -d --name align-mongodb -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=align_user \
+  -e MONGO_INITDB_ROOT_PASSWORD=align_password \
+  -e MONGO_INITDB_DATABASE=align_db \
+  mongo:7.0
+```
+
+### 2. Run Backend
 
 Navigate to `/backend`:
 
@@ -52,19 +66,13 @@ cd backend
 mvn spring-boot:run
 ```
 
-- **Health Endpoint**: [http://localhost:8080/api/v1/health](http://localhost:8080/api/v1/health)
-- **OpenAPI / Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- **OpenAPI JSON Spec**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-
-### Run Backend Tests
+Run backend test suite:
 
 ```bash
 mvn test
 ```
 
----
-
-## 3. Frontend Setup & Startup
+### 3. Run Frontend
 
 Navigate to `/frontend`:
 
@@ -74,24 +82,22 @@ npm install
 npm run dev
 ```
 
-- **Application URL**: [http://localhost:3000](http://localhost:3000)
-
-The frontend automatically connects to `http://localhost:8080/api/v1/health` and displays the real-time status indicator: **Backend: Online / Offline**.
-
-### Run Frontend Tests
+Run frontend test suite:
 
 ```bash
-npm test
+npm test -- --watch=false
 ```
 
 ---
 
-## Database Migrations (Flyway)
+## Health API Specification
 
-Flyway automatically handles initial schema migrations on application startup.
+`GET /api/v1/health`
 
-Schemas managed under `backend/src/main/resources/db/migration/`:
-- `V1__initial_schema.sql`: Scaffolds core tables:
-  - `users`
-  - `organizations`
-  - `organization_members`
+Response:
+```json
+{
+  "application": "UP",
+  "database": "UP"
+}
+```

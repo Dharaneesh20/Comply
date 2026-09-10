@@ -1,45 +1,30 @@
 package com.align.compliance.dto;
 
-import java.time.Instant;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Application and Database Health Status")
 public class HealthResponse {
-    private String status;
-    private String service;
-    private Instant timestamp;
+
+    @Schema(description = "Application operational status", example = "UP")
+    private String application;
+
+    @Schema(description = "MongoDB connectivity status", example = "UP")
     private String database;
 
     public HealthResponse() {
     }
 
-    public HealthResponse(String status, String service, Instant timestamp, String database) {
-        this.status = status;
-        this.service = service;
-        this.timestamp = timestamp;
+    public HealthResponse(String application, String database) {
+        this.application = application;
         this.database = database;
     }
 
-    public String getStatus() {
-        return status;
+    public String getApplication() {
+        return application;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getService() {
-        return service;
-    }
-
-    public void setService(String service) {
-        this.service = service;
-    }
-
-    public Instant getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
+    public void setApplication(String application) {
+        this.application = application;
     }
 
     public String getDatabase() {
