@@ -6,7 +6,7 @@ export const getSOPs = async (
   status?: string,
   department?: string
 ): Promise<SOP[]> => {
-  const params: Record<string, string> = {};
+  const params: Record<string, string> = { organizationId: orgId };
   if (status) params.status = status;
   if (department) params.department = department;
 
@@ -109,6 +109,7 @@ export const archiveSOP = async (orgId: string, id: string): Promise<SOP> => {
 export const getSOPMetrics = async (orgId: string): Promise<SOPMetricsResponse> => {
   const response = await apiClient.get<SOPMetricsResponse>('/api/v1/sops/metrics', {
     headers: { 'X-Organization-Id': orgId },
+    params: { organizationId: orgId },
   });
   return response.data;
 };

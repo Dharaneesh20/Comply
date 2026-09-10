@@ -235,88 +235,88 @@ export const RegulationDetails: React.FC = () => {
   return (
     <div style={{ maxWidth: '1150px', margin: '0 auto' }}>
       {/* Top Breadcrumb & Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button className="btn btn-secondary" onClick={() => navigate('/regulations')} style={{ padding: '0.4rem 0.85rem' }}>
-          <ArrowLeft size={16} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
+        <button className="btn btn-secondary btn-sm" onClick={() => navigate('/regulations')}>
+          <ArrowLeft size={15} />
           <span>Back to Regulations</span>
         </button>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button className="btn btn-secondary" onClick={handleAnalyzeChange}>
-            <GitBranch size={16} color="var(--accent-cyan)" />
+        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary btn-sm" onClick={handleAnalyzeChange}>
+            <GitBranch size={15} style={{ color: 'var(--color-accent)' }} />
             <span>Analyze Version Change Impact</span>
           </button>
-          <button className="btn btn-secondary" onClick={() => setShowVersionModal(true)}>
-            <Plus size={16} />
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowVersionModal(true)}>
+            <Plus size={15} />
             <span>Add Version</span>
           </button>
-          <button className="btn btn-secondary" onClick={() => setShowReqModal(true)}>
-            <Plus size={16} />
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowReqModal(true)}>
+            <Plus size={15} />
             <span>Add Requirement Clause</span>
           </button>
-          <button className="btn btn-primary" onClick={() => setShowMappingModal(true)} disabled={requirements.length === 0 || availableSops.length === 0}>
-            <Link2 size={16} />
+          <button className="btn btn-primary btn-sm" onClick={() => setShowMappingModal(true)} disabled={requirements.length === 0 || availableSops.length === 0}>
+            <Link2 size={15} />
             <span>Map Requirement to SOP</span>
           </button>
         </div>
       </div>
 
       {/* Main Banner Card */}
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="card card-padding" style={{ marginBottom: 'var(--space-6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <span className={`status-badge ${regulation.status.toLowerCase()}`}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+              <span className={`badge ${regulation.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'}`}>
                 {regulation.status}
               </span>
-              <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-blue)', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 700 }}>
+              <span className="badge badge-accent">
                 {regulation.category}
               </span>
             </div>
 
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--text-primary)', letterSpacing: 'var(--tracking-tight)', marginBottom: 'var(--space-1)' }}>
               {regulation.title}
             </h1>
           </div>
         </div>
 
         {/* Metadata Details Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-4)', marginTop: 'var(--space-5)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--border)' }}>
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               JURISDICTION
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              <Globe2 size={15} color="var(--accent-cyan)" />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)' }}>
+              <Globe2 size={13} style={{ color: 'var(--color-accent)' }} />
               {regulation.jurisdiction}
             </span>
           </div>
 
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               GOVERNING AUTHORITY
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              <Building size={15} color="var(--accent-purple)" />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)' }}>
+              <Building size={13} style={{ color: 'var(--color-accent)' }} />
               {regulation.authority}
             </span>
           </div>
 
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               PUBLICATION DATE
             </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
               {regulation.publicationDate ? new Date(regulation.publicationDate).toLocaleDateString() : 'N/A'}
             </span>
           </div>
 
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', display: 'block', letterSpacing: 'var(--tracking-wider)', marginBottom: '2px' }}>
               ENFORCEMENT / EFFECTIVE DATE
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--accent-amber)' }}>
-              <Calendar size={14} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-warning-text)' }}>
+              <Calendar size={13} />
               {regulation.effectiveDate ? new Date(regulation.effectiveDate).toLocaleDateString() : 'Immediate'}
             </span>
           </div>
@@ -324,147 +324,156 @@ export const RegulationDetails: React.FC = () => {
       </div>
 
       {/* Mandatory Disclaimer Banner */}
-      <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.825rem', color: '#fcd34d' }}>
-        <Info size={20} style={{ flexShrink: 0 }} />
+      <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--color-warning-subtle)', border: '1px solid rgba(255, 159, 10, 0.25)', borderRadius: 'var(--radius-sm)', marginBottom: 'var(--space-6)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-warning-text)' }}>
+        <Info size={16} style={{ flexShrink: 0 }} />
         <span>
           <strong>Legal Disclaimer:</strong> Extracted requirements and clause references stored within the Align Compliance Knowledge Base serve operational alignment and audit gap analysis only, and are not legally authoritative.
         </span>
       </div>
 
-      {/* Active Mapped SOPs & Operational Coverage Card */}
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <div className="card-title" style={{ margin: 0 }}>
-            <Link2 size={20} color="var(--accent-emerald)" />
-            <span>Mapped Standard Operating Procedures ({mappedSops.length})</span>
-          </div>
-
-          <button 
-            className="btn btn-primary" 
-            style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
-            onClick={() => setShowMappingModal(true)}
-            disabled={requirements.length === 0 || availableSops.length === 0}
-          >
-            <Plus size={14} />
-            <span>Create New Mapping</span>
-          </button>
-        </div>
-
-        {mappedSops.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-secondary)' }}>
-            <Link2 size={36} style={{ opacity: 0.4, marginBottom: '0.75rem' }} />
-            <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>No SOPs Mapped Yet</p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-              Explicitly map regulatory requirement clauses to operational SOPs to establish compliance lineage.
-            </p>
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => setShowMappingModal(true)}
-              disabled={requirements.length === 0 || availableSops.length === 0}
-            >
-              <Plus size={16} />
-              <span>Map First Requirement</span>
-            </button>
-          </div>
-        ) : (
-          <div className="table-container">
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Section Clause</th>
-                  <th>Mapped SOP Document</th>
-                  <th>Department</th>
-                  <th>Mapping Type</th>
-                  <th>Confidence</th>
-                  <th>Notes</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mappedSops.map((item) => (
-                  <tr key={item.mappingId}>
-                    <td>
-                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
-                        {item.sectionReference}
-                      </span>
-                    </td>
-                    <td>
-                      <div 
-                        onClick={() => navigate(`/sops/${item.sopId}`)}
-                        style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                      >
-                        <FileText size={15} color="var(--accent-cyan)" />
-                        <span>{item.sopTitle || 'SOP Document'}</span>
-                        <ExternalLink size={12} style={{ opacity: 0.6 }} />
-                      </div>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        {item.department || 'N/A'} (v{item.currentVersion || 1})
-                      </span>
-                    </td>
-                    <td>{getMappingTypeBadge(item.mappingType)}</td>
-                    <td>
-                      <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-emerald)', fontWeight: 700 }}>
-                        {Math.round(item.confidence * 100)}%
-                      </span>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                        {item.notes || '—'}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button 
-                        onClick={() => handleDeleteMapping(item.mappingId)}
-                        style={{ color: 'var(--accent-rose)', padding: '0.35rem', borderRadius: '4px' }}
-                        title="Delete mapping"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Main Grid: Requirements Section & Versions Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem' }}>
-        
-        {/* Left Column: Regulatory Requirements */}
-        <div>
-          <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <div className="card-title" style={{ margin: 0 }}>
-                <ListChecks size={20} color="var(--accent-cyan)" />
-                <span>Extracted Requirements ({requirements.length})</span>
+      {/* Dashboard Main Grid Layout (Bigger Main Box + Sidebar Box) */}
+      <div className="sop-details-layout">
+        {/* Main Content Column (Bigger Box Area) */}
+        <div className="sop-details-main">
+          {/* Active Mapped SOPs & Operational Coverage Card */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <Link2 size={18} style={{ color: 'var(--color-accent)' }} />
+                <h3 className="section-title" style={{ margin: 0 }}>
+                  Mapped Standard Operating Procedures ({mappedSops.length})
+                </h3>
               </div>
-              <button className="btn btn-primary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => setShowReqModal(true)}>
+
+              <button 
+                className="btn btn-primary btn-sm" 
+                onClick={() => setShowMappingModal(true)}
+                disabled={requirements.length === 0 || availableSops.length === 0}
+              >
+                <Plus size={14} />
+                <span>Create New Mapping</span>
+              </button>
+            </div>
+
+            {mappedSops.length === 0 ? (
+              <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+                <Link2 size={32} className="empty-state-icon" />
+                <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', marginBottom: 'var(--space-1)' }}>
+                  No SOPs Mapped Yet
+                </h4>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', maxWidth: '400px', marginBottom: 'var(--space-4)' }}>
+                  Explicitly map regulatory requirement clauses to operational SOPs to establish compliance lineage.
+                </p>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  onClick={() => setShowMappingModal(true)}
+                  disabled={requirements.length === 0 || availableSops.length === 0}
+                >
+                  <Plus size={14} />
+                  <span>Map First Requirement</span>
+                </button>
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table className="align-table">
+                  <thead>
+                    <tr>
+                      <th>Clause</th>
+                      <th>Mapped SOP</th>
+                      <th>Department</th>
+                      <th>Mapping Type</th>
+                      <th>Confidence</th>
+                      <th>Notes</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mappedSops.map((item) => (
+                      <tr key={item.mappingId}>
+                        <td>
+                          <span style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-xs)', color: 'var(--color-accent)', background: 'var(--color-accent-subtle)', padding: '2px 6px', borderRadius: 'var(--radius-xs)', fontFamily: 'var(--font-mono)' }}>
+                            {item.sectionReference}
+                          </span>
+                        </td>
+                        <td>
+                          <div 
+                            onClick={() => navigate(`/sops/${item.sopId}`)}
+                            style={{ fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}
+                          >
+                            <FileText size={14} style={{ color: 'var(--color-accent)' }} />
+                            <span>{item.sopTitle || 'SOP Document'}</span>
+                            <ExternalLink size={12} style={{ opacity: 0.6 }} />
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+                            {item.department || 'N/A'} (v{item.currentVersion || 1})
+                          </span>
+                        </td>
+                        <td>{getMappingTypeBadge(item.mappingType)}</td>
+                        <td>
+                          <span style={{ fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)', color: 'var(--color-success-text)', fontWeight: 'var(--weight-bold)' }}>
+                            {Math.round(item.confidence * 100)}%
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                            {item.notes || '—'}
+                          </span>
+                        </td>
+                        <td className="text-right">
+                          <button 
+                            onClick={() => handleDeleteMapping(item.mappingId)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--color-danger-text)' }}
+                            title="Delete mapping"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Extracted Requirements Section */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <ListChecks size={18} style={{ color: 'var(--color-accent)' }} />
+                <h3 className="section-title" style={{ margin: 0 }}>
+                  Extracted Requirements ({requirements.length})
+                </h3>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={() => setShowReqModal(true)}>
                 <Plus size={14} />
                 <span>Add Requirement</span>
               </button>
             </div>
 
             {requirements.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
-                <ListChecks size={36} style={{ opacity: 0.4, marginBottom: '0.75rem' }} />
-                <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>No Requirements Extracted Yet</p>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Add specific section clauses and compliance rules for this regulation.</p>
+              <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+                <ListChecks size={32} className="empty-state-icon" />
+                <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 'var(--weight-semibold)', color: 'var(--text-primary)', marginBottom: 'var(--space-1)' }}>
+                  No Requirements Extracted Yet
+                </h4>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                  Add specific section clauses and compliance rules for this regulation.
+                </p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                 {requirements.map((req) => (
-                  <div key={req.id} style={{ padding: '1rem 1.25rem', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.875rem', color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+                  <div key={req.id} style={{ padding: 'var(--space-4)', background: 'var(--bg-surface-raised)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
+                      <span style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-xs)', color: 'var(--color-accent)', background: 'var(--color-accent-subtle)', padding: '2px 6px', borderRadius: 'var(--radius-xs)', fontFamily: 'var(--font-mono)' }}>
                         {req.sectionReference}
                       </span>
                       <button
-                        className="btn btn-secondary"
-                        style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                        className="btn btn-secondary btn-sm"
                         onClick={() => {
                           setSelectedReqId(req.id);
                           setShowMappingModal(true);
@@ -475,12 +484,12 @@ export const RegulationDetails: React.FC = () => {
                       </button>
                     </div>
                     
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '0.5rem' }}>
+                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', lineHeight: 'var(--leading-normal)', marginBottom: 'var(--space-2)' }}>
                       {req.requirementText}
                     </p>
 
                     {req.sourceReference && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '0.4rem', marginTop: '0.4rem' }}>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: 'var(--space-2)' }}>
                         Source Ref: <span style={{ color: 'var(--text-secondary)' }}>{req.sourceReference}</span>
                       </div>
                     )}
@@ -491,26 +500,29 @@ export const RegulationDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Version History Log */}
-        <div>
-          <div className="card">
-            <div className="card-title" style={{ marginBottom: '1rem' }}>
-              <History size={18} color="var(--accent-purple)" />
-              <span>Regulation Versions ({versions.length})</span>
+        {/* Right Sidebar Column (Two Smaller Boxes Layout) */}
+        <div className="sop-details-sidebar">
+          {/* Regulation Versions Card */}
+          <div className="card card-padding">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+              <History size={18} style={{ color: 'var(--color-accent)' }} />
+              <h3 className="section-title" style={{ margin: 0 }}>
+                Versions ({versions.length})
+              </h3>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               {versions.map((ver) => (
-                <div key={ver.id} style={{ padding: '0.85rem 1rem', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                <div key={ver.id} style={{ padding: 'var(--space-3)', background: 'var(--bg-surface-raised)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-1)' }}>
+                    <span style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
                       Version {ver.versionNumber}
                     </span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                       {new Date(ver.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', wordBreak: 'break-all' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)', color: 'var(--color-accent)', wordBreak: 'break-all' }}>
                     {ver.documentReference}
                   </div>
                 </div>
@@ -518,26 +530,26 @@ export const RegulationDetails: React.FC = () => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Map Requirement to SOP Modal */}
       {showMappingModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Link2 size={20} color="var(--accent-cyan)" />
+        <div className="modal-overlay" onClick={() => setShowMappingModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--border)', paddingBottom: 'var(--space-3)' }}>
+              <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <Link2 size={18} style={{ color: 'var(--color-accent)' }} />
                 <span>Map Requirement Clause to SOP</span>
               </h3>
-              <button onClick={() => setShowMappingModal(false)} style={{ color: 'var(--text-muted)' }}>
-                <X size={20} />
+              <button className="header-icon-btn" onClick={() => setShowMappingModal(false)}>
+                <X size={16} />
               </button>
             </div>
 
             {mappingError && (
-              <div style={{ padding: '0.75rem', background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: 'var(--radius-sm)', color: '#fb7185', marginBottom: '1rem', fontSize: '0.85rem' }}>
-                {mappingError}
+              <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }}>
+                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{mappingError}</span>
               </div>
             )}
 
@@ -602,12 +614,12 @@ export const RegulationDetails: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowMappingModal(false)} disabled={savingMapping}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowMappingModal(false)} disabled={savingMapping}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={savingMapping || !selectedReqId || !selectedSopId}>
-                  {savingMapping ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 size={16} />}
+                <button type="submit" className="btn btn-primary btn-sm" disabled={savingMapping || !selectedReqId || !selectedSopId}>
+                  {savingMapping ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 size={15} />}
                   <span>Save Compliance Mapping</span>
                 </button>
               </div>
@@ -618,15 +630,15 @@ export const RegulationDetails: React.FC = () => {
 
       {/* Add Version Modal */}
       {showVersionModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Plus size={20} color="var(--accent-cyan)" />
+        <div className="modal-overlay" onClick={() => setShowVersionModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--border)', paddingBottom: 'var(--space-3)' }}>
+              <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <Plus size={18} style={{ color: 'var(--color-accent)' }} />
                 <span>Add Regulation Version</span>
               </h3>
-              <button onClick={() => setShowVersionModal(false)} style={{ color: 'var(--text-muted)' }}>
-                <X size={20} />
+              <button className="header-icon-btn" onClick={() => setShowVersionModal(false)}>
+                <X size={16} />
               </button>
             </div>
 
@@ -653,12 +665,12 @@ export const RegulationDetails: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowVersionModal(false)} disabled={savingVersion}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowVersionModal(false)} disabled={savingVersion}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={savingVersion || !versionDocRef.trim()}>
-                  {savingVersion ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 size={16} />}
+                <button type="submit" className="btn btn-primary btn-sm" disabled={savingVersion || !versionDocRef.trim()}>
+                  {savingVersion ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 size={15} />}
                   <span>Add Version</span>
                 </button>
               </div>
@@ -669,15 +681,15 @@ export const RegulationDetails: React.FC = () => {
 
       {/* Add Requirement Modal */}
       {showReqModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ListChecks size={20} color="var(--accent-cyan)" />
+        <div className="modal-overlay" onClick={() => setShowReqModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--border)', paddingBottom: 'var(--space-3)' }}>
+              <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <ListChecks size={18} style={{ color: 'var(--color-accent)' }} />
                 <span>Add Regulatory Requirement Clause</span>
               </h3>
-              <button onClick={() => setShowReqModal(false)} style={{ color: 'var(--text-muted)' }}>
-                <X size={20} />
+              <button className="header-icon-btn" onClick={() => setShowReqModal(false)}>
+                <X size={16} />
               </button>
             </div>
 
@@ -728,12 +740,12 @@ export const RegulationDetails: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowReqModal(false)} disabled={savingReq}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowReqModal(false)} disabled={savingReq}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={savingReq || !reqText.trim() || !sectionRef.trim()}>
-                  {savingReq ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 size={16} />}
+                <button type="submit" className="btn btn-primary btn-sm" disabled={savingReq || !reqText.trim() || !sectionRef.trim()}>
+                  {savingReq ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 size={15} />}
                   <span>Save Requirement Clause</span>
                 </button>
               </div>
