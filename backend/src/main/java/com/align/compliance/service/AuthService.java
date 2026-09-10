@@ -18,11 +18,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
+    private final AuditService auditService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider, AuditService auditService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
+        this.auditService = auditService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -56,6 +58,7 @@ public class AuthService {
         }
 
         String token = tokenProvider.generateToken(user.getId(), user.getEmail(), user.getRole());
+        auditService.logEvent("GLOBAL", user.getId(), user.getEmail(), "USER_LOGIN", "User", user.getId(), "0.0.0.0", java.util.Map.of("email", user.getEmail()));
         return new AuthResponse(token, toUserResponse(user));
     }
 

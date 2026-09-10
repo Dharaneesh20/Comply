@@ -7,7 +7,9 @@ import {
   FileText, 
   GitBranch, 
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  ShieldAlert,
+  Lock
 } from 'lucide-react';
 import { ConnectionState, HealthStatusResponse } from '../../types';
 import { HealthBadge } from '../HealthBadge';
@@ -89,6 +91,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ healthState, healthData }) => 
         >
           <CheckCircle2 size={18} />
           <span>Remediations</span>
+        </NavLink>
+
+        <div style={{ margin: '1.5rem 0 0.5rem 0.75rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>
+          GOVERNANCE & SECURITY
+        </div>
+
+        <NavLink 
+          to="/audit" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+        >
+          <ShieldAlert size={18} />
+          <span>Audit Trail</span>
+        </NavLink>
+
+        <NavLink 
+          to="/settings/security" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+        >
+          <Lock size={18} />
+          <span>Security & Privacy</span>
         </NavLink>
       </nav>
 

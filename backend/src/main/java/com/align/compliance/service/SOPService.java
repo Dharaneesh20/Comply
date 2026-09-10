@@ -40,18 +40,21 @@ public class SOPService {
     private final OrganizationMemberRepository memberRepository;
     private final UserRepository userRepository;
     private final StorageService storageService;
+    private final AuditService auditService;
 
     public SOPService(
             SOPRepository sopRepository,
             SOPVersionRepository sopVersionRepository,
             OrganizationMemberRepository memberRepository,
             UserRepository userRepository,
-            StorageService storageService) {
+            StorageService storageService,
+            AuditService auditService) {
         this.sopRepository = sopRepository;
         this.sopVersionRepository = sopVersionRepository;
         this.memberRepository = memberRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
+        this.auditService = auditService;
     }
 
     public void verifyOrganizationMembership(String organizationId, String userId) {
@@ -101,6 +104,17 @@ public class SOPService {
                 request.getChangeSummary() != null ? request.getChangeSummary() : "Initial SOP creation"
         );
         sopVersionRepository.save(version);
+
+        auditService.logEvent(
+                savedSop.getOrganizationId(),
+                currentUser.getId(),
+                currentUser.getEmail(),
+                "SOP_CREATED",
+                "SOP",
+                savedSop.getId(),
+                "0.0.0.0",
+                Map.of("title", savedSop.getTitle(), "department", savedSop.getDepartment())
+        );
 
         return toSOPResponse(savedSop);
     }

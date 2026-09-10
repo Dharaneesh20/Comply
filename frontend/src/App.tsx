@@ -18,6 +18,8 @@ import { FindingDetails } from './pages/FindingDetails';
 import { RegulatoryChangesList } from './pages/RegulatoryChangesList';
 import { RegulatoryChangeDetails } from './pages/RegulatoryChangeDetails';
 import { RemediationsList } from './pages/RemediationsList';
+import { AuditTrail } from './pages/AuditTrail';
+import { SecuritySettings } from './pages/SecuritySettings';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -206,6 +208,28 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
               <RemediationsList />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+
+      <Route 
+        path="/audit" 
+        element={
+          <ProtectedRoute>
+            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
+              <AuditTrail />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+
+      <Route 
+        path="/settings/security" 
+        element={
+          <ProtectedRoute>
+            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
+              <SecuritySettings />
             </MainLayout>
           </ProtectedRoute>
         } 
