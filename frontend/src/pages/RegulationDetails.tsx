@@ -13,6 +13,7 @@ import { createMapping, getMappedSOPsForRegulation, deleteMapping } from '../api
 import { Regulation, RegulationVersion, RegulatoryRequirement } from '../types/regulation';
 import { SOP } from '../types/sop';
 import { MappedSOPDetailResponse, MappingType } from '../types/mapping';
+import { analyzeRegulationChange } from '../api/regulatoryChanges';
 import { 
   ArrowLeft, 
   Plus, 
@@ -29,7 +30,8 @@ import {
   Link2,
   FileText,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  GitBranch
 } from 'lucide-react';
 
 export const RegulationDetails: React.FC = () => {
@@ -220,6 +222,16 @@ export const RegulationDetails: React.FC = () => {
     );
   }
 
+  const handleAnalyzeChange = async () => {
+    if (!id) return;
+    try {
+      const change = await analyzeRegulationChange(id);
+      navigate(`/regulatory-changes/${change.id}`);
+    } catch (err: any) {
+      alert('Failed to analyze regulatory change impact.');
+    }
+  };
+
   return (
     <div style={{ maxWidth: '1150px', margin: '0 auto' }}>
       {/* Top Breadcrumb & Actions */}
@@ -230,6 +242,10 @@ export const RegulationDetails: React.FC = () => {
         </button>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn btn-secondary" onClick={handleAnalyzeChange}>
+            <GitBranch size={16} color="var(--accent-cyan)" />
+            <span>Analyze Version Change Impact</span>
+          </button>
           <button className="btn btn-secondary" onClick={() => setShowVersionModal(true)}>
             <Plus size={16} />
             <span>Add Version</span>

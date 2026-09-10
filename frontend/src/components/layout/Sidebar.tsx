@@ -66,10 +66,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ healthState, healthData }) => 
           <span>Policies & SOPs</span>
         </NavLink>
 
-        <div className="sidebar-item" style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+        <NavLink 
+          to="/regulatory-changes" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+        >
           <GitBranch size={18} />
-          <span>Workflows</span>
-        </div>
+          <span>Regulatory Changes</span>
+        </NavLink>
 
         <NavLink 
           to="/findings" 
