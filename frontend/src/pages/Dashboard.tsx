@@ -5,16 +5,18 @@ import { HealthBadge } from '../components/HealthBadge';
 import { useAuth } from '../context/AuthContext';
 import { getSOPMetrics } from '../api/sops';
 import { getRegulationMetrics } from '../api/regulations';
+import { getFindingMetrics } from '../api/findings';
 import { SOPMetricsResponse } from '../types/sop';
 import { RegulationMetricsResponse } from '../types/regulation';
+import { FindingMetricsResponse } from '../types/finding';
 import { 
   Server, 
   FileText, 
   ShieldCheck,
   ListChecks,
+  AlertTriangle,
   Building2, 
   Plus, 
-  CheckCircle2, 
   ArrowRight
 } from 'lucide-react';
 
@@ -31,6 +33,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ healthState, healthData, l
 
   const [sopMetrics, setSopMetrics] = useState<SOPMetricsResponse | null>(null);
   const [regMetrics, setRegMetrics] = useState<RegulationMetricsResponse | null>(null);
+  const [findingMetrics, setFindingMetrics] = useState<FindingMetricsResponse | null>(null);
   const [loadingMetrics, setLoadingMetrics] = useState<boolean>(false);
 
   useEffect(() => {
@@ -39,14 +42,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ healthState, healthData, l
       Promise.all([
         getSOPMetrics(currentOrganization.id),
         getRegulationMetrics(currentOrganization.id),
+        getFindingMetrics(currentOrganization.id),
       ])
-        .then(([sopData, regData]) => {
+        .then(([sopData, regData, findData]) => {
           setSopMetrics(sopData);
           setRegMetrics(regData);
+          setFindingMetrics(findData);
         })
         .catch(() => {
           setSopMetrics(null);
           setRegMetrics(null);
+          setFindingMetrics(null);
         })
         .finally(() => setLoadingMetrics(false));
     }
@@ -139,20 +145,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ healthState, healthData, l
           </div>
         </div>
 
-        {/* Published SOPs */}
+        {/* Open Compliance Findings */}
         <div 
           className="card" 
           style={{ padding: '1.25rem', cursor: 'pointer' }}
-          onClick={() => navigate('/sops')}
+          onClick={() => navigate('/findings')}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Published SOPs</span>
-            <CheckCircle2 size={20} color="var(--accent-emerald)" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Open Findings</span>
+            <AlertTriangle size={20} color="var(--accent-amber)" />
           </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--accent-emerald)' }}>
-            {loadingMetrics ? '...' : sopMetrics?.publishedSops ?? 0}
+          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--accent-amber)' }}>
+            {loadingMetrics ? '...' : findingMetrics?.totalOpen ?? 0}
           </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active Operational SOPs</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+            <span style={{ color: '#ef4444', fontWeight: 700 }}>{findingMetrics?.criticalCount ?? 0} Critical</span>
+            <span>•</span>
+            <span style={{ color: '#f43f5e', fontWeight: 700 }}>{findingMetrics?.highCount ?? 0} High</span>
+          </div>
         </div>
       </div>
 

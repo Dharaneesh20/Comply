@@ -13,6 +13,8 @@ import { SOPDetails } from './pages/SOPDetails';
 import { RegulationsList } from './pages/RegulationsList';
 import { CreateRegulation } from './pages/CreateRegulation';
 import { RegulationDetails } from './pages/RegulationDetails';
+import { FindingsList } from './pages/FindingsList';
+import { FindingDetails } from './pages/FindingDetails';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -146,6 +148,28 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
               <RegulationDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+
+      <Route 
+        path="/findings" 
+        element={
+          <ProtectedRoute>
+            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
+              <FindingsList />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+
+      <Route 
+        path="/findings/:id" 
+        element={
+          <ProtectedRoute>
+            <MainLayout healthState={healthState} healthData={healthData} onRefreshHealth={checkHealth}>
+              <FindingDetails />
             </MainLayout>
           </ProtectedRoute>
         } 

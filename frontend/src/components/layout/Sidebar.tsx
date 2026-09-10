@@ -71,10 +71,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ healthState, healthData }) => 
           <span>Workflows</span>
         </div>
 
-        <div className="sidebar-item" style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+        <NavLink 
+          to="/findings" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+        >
           <AlertTriangle size={18} />
           <span>Findings</span>
-        </div>
+        </NavLink>
       </nav>
 
       <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
