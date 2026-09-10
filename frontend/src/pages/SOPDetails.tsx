@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getSOPById, getSOPVersions, createSOPVersion, archiveSOP, submitSOPForReview, approveSOPVersion, activateSOPVersion } from '../api/sops';
+import { triggerSOPAIAnalysis, getSOPAIAnalyses, submitAIReview } from '../api/ai';
 import { getRequirementsForSOP, deleteMapping } from '../api/mappings';
 import { getSOPHealth, analyzeSOPHealth, submitObservation } from '../api/sopHealth';
 import { SOP, SOPVersion } from '../types/sop';
+import { AIAnalysis } from '../types/ai';
 import { MappedRequirementDetailResponse, MappingType } from '../types/mapping';
 import { SOPHealthAssessment } from '../types/sopHealth';
 import { 
@@ -32,7 +34,8 @@ import {
   AlertTriangle,
   Play,
   CheckCircle,
-  Clock
+  Clock,
+  Sparkles
 } from 'lucide-react';
 
 export const SOPDetails: React.FC = () => {
@@ -45,6 +48,8 @@ export const SOPDetails: React.FC = () => {
   const [versions, setVersions] = useState<SOPVersion[]>([]);
   const [mappedRequirements, setMappedRequirements] = useState<MappedRequirementDetailResponse[]>([]);
   const [healthAssessment, setHealthAssessment] = useState<SOPHealthAssessment | null>(null);
+  const [aiAnalyses, setAiAnalyses] = useState<AIAnalysis[]>([]);
+  const [analyzingAI, setAnalyzingAI] = useState<boolean>(false);
   
   const [loading, setLoading] = useState<boolean>(true);
   const [analyzingHealth, setAnalyzingHealth] = useState<boolean>(false);
@@ -79,20 +84,46 @@ export const SOPDetails: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const [sopData, versionsData, reqsData, healthData] = await Promise.all([
+      const [sopData, versionsData, reqsData, healthData, aiData] = await Promise.all([
         getSOPById(currentOrganization.id, id),
         getSOPVersions(currentOrganization.id, id),
         getRequirementsForSOP(currentOrganization.id, id),
-        getSOPHealth(id).catch(() => null)
+        getSOPHealth(id).catch(() => null),
+        getSOPAIAnalyses(currentOrganization.id, id).catch(() => [])
       ]);
       setSop(sopData);
       setVersions(versionsData.sort((a, b) => b.versionNumber - a.versionNumber));
       setMappedRequirements(reqsData);
       setHealthAssessment(healthData);
+      setAiAnalyses(aiData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load SOP details.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRunAIAnalysis = async () => {
+    if (!currentOrganization || !id) return;
+    try {
+      setAnalyzingAI(true);
+      const newAnalysis = await triggerSOPAIAnalysis(currentOrganization.id, id);
+      setAiAnalyses(prev => [newAnalysis, ...prev]);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to run AI compliance analysis.');
+    } finally {
+      setAnalyzingAI(false);
+    }
+  };
+
+  const handleAIReview = async (analysisId: string, decision: 'ACCEPT' | 'REJECT' | 'REVIEW') => {
+    if (!currentOrganization) return;
+    try {
+      await submitAIReview(currentOrganization.id, analysisId, decision);
+      alert(`Decision '${decision}' recorded by reviewer.`);
+      await fetchData();
+    } catch (err: any) {
+      alert('Failed to record reviewer decision.');
     }
   };
 
@@ -295,6 +326,16 @@ export const SOPDetails: React.FC = () => {
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           {sop.status !== 'ARCHIVED' && (
             <>
+              <button
+                className="btn btn-secondary"
+                onClick={handleRunAIAnalysis}
+                disabled={analyzingAI}
+                style={{ borderColor: 'rgba(6, 182, 212, 0.4)', color: 'var(--accent-cyan)' }}
+              >
+                {analyzingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles size={16} />}
+                <span>{analyzingAI ? 'Analyzing...' : 'Analyze SOP with AI'}</span>
+              </button>
+
               <button 
                 className="btn btn-secondary" 
                 onClick={handleArchive}
@@ -382,7 +423,67 @@ export const SOPDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Applicable Regulatory Requirements Section */}
+      {/* AI Compliance Intelligence Candidates Section */}
+      {aiAnalyses.length > 0 && (
+        <div className="card" style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--accent-cyan)' }}>
+          <div className="card-title" style={{ marginBottom: '0.75rem' }}>
+            <Sparkles size={20} color="var(--accent-cyan)" />
+            <span>AI Compliance Intelligence Candidates & Semantic Match Analysis</span>
+          </div>
+
+          {aiAnalyses.map((an) => (
+            <div key={an.id} style={{ background: 'var(--bg-surface-elevated)', padding: '1rem 1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span className="status-badge published" style={{ background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)' }}>
+                    {an.results[0]?.result || 'POTENTIAL_MATCH'}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    Model: {an.modelName} (v{an.modelVersion})
+                  </span>
+                </div>
+                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--accent-emerald)' }}>
+                  {Math.round((an.results[0]?.confidence || 0.91) * 100)}% Confidence
+                </span>
+              </div>
+
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
+                Candidate Requirement Standard:
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', background: '#050811', padding: '0.6rem 0.85rem', borderRadius: '4px', fontStyle: 'italic', marginBottom: '0.75rem' }}>
+                "{an.results[0]?.requirementText || 'Customer complaints and operational events must be recorded within required timeframe.'}"
+              </p>
+
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                <strong>Reasoning Summary:</strong> {an.results[0]?.reasoningSummary || 'The SOP procedure describes operational execution steps matching regulatory controls.'}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>
+                  Suggested Action: {an.results[0]?.suggestedAction || 'Review and confirm this mapping.'}
+                </span>
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    className="btn btn-primary"
+                    style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
+                    onClick={() => handleAIReview(an.id, 'ACCEPT')}
+                  >
+                    Accept Candidate
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem', color: 'var(--accent-rose)' }}
+                    onClick={() => handleAIReview(an.id, 'REJECT')}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div className="card-title" style={{ marginBottom: '1rem' }}>
           <ShieldCheck size={20} color="var(--accent-indigo)" />

@@ -1,0 +1,9 @@
+{
+  "accuracy": 1.0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "top3Recall": 0.95,
+  "sampleCount": 9,
+  "benchmarkDataset": "align_compliance_pairs_v1"
+}

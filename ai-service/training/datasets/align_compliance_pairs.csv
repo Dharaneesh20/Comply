@@ -1,0 +1,10 @@
+requirement_text,sop_text,label
+"Customer complaints must be recorded within 24 hours","All customer complaints must be entered into the complaint management system within one business day",MATCH
+"Customer complaints must be recorded within 24 hours","Customer complaints should be reviewed by the support team",PARTIAL_MATCH
+"Customer complaints must be recorded within 24 hours","Employees must wear identification badges",NO_MATCH
+"Access logs must be retained for at least 90 days","Security and access logs are archived for 3 months prior to deletion",MATCH
+"Access logs must be retained for at least 90 days","Access logs are generated daily",PARTIAL_MATCH
+"Access logs must be retained for at least 90 days","Cafeteria menus are updated weekly",NO_MATCH
+"Data encryption at rest using AES-256 standard","All persistent storage volumes are encrypted using AES-256 keys",MATCH
+"Data encryption at rest using AES-256 standard","Data transmission uses TLS 1.3 protocol",PARTIAL_MATCH
+"Data encryption at rest using AES-256 standard","Parking permits are issued by security",NO_MATCH
