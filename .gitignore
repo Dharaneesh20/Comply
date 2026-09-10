@@ -1,0 +1,33 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment Configuration
+.env
+!.env.example
+
+# Node / Frontend
+**/node_modules/
+**/dist/
+**/build/
+.npm
+*.log
+
+# Java / Maven / Backend
+**/target/
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+
+# IDE & Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files & local tools
+scratch/
+tmp/
+temp/
