@@ -99,6 +99,14 @@ export const getSOPVersions = async (orgId: string, id: string): Promise<SOPVers
   return response.data;
 };
 
+export const getSOPDocumentText = async (orgId: string, id: string): Promise<string> => {
+  const response = await apiClient.get<string>(`/api/v1/sops/${id}/document-text`, {
+    headers: { 'X-Organization-Id': orgId },
+    responseType: 'text',
+  });
+  return response.data;
+};
+
 export const archiveSOP = async (orgId: string, id: string): Promise<SOP> => {
   const response = await apiClient.post<SOP>(`/api/v1/sops/${id}/archive`, {}, {
     headers: { 'X-Organization-Id': orgId },

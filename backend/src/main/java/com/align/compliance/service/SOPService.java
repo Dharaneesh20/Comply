@@ -10,6 +10,11 @@ import com.align.compliance.repository.SOPRepository;
 import com.align.compliance.repository.SOPVersionRepository;
 import com.align.compliance.repository.UserRepository;
 import com.align.compliance.storage.StorageService;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.springframework.core.io.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -141,6 +148,41 @@ public class SOPService {
         verifyOrganizationMembership(sop.getOrganizationId(), currentUser.getId());
 
         return toSOPResponse(sop);
+    }
+
+    public String extractCurrentDocumentText(String id, User currentUser) {
+        SOP sop = sopRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("SOP not found with ID: " + id));
+        verifyOrganizationMembership(sop.getOrganizationId(), currentUser.getId());
+
+        DocumentMetadata metadata = sop.getCurrentDocumentMetadata();
+        if (metadata == null || !StringUtils.hasText(metadata.getStorageReference())) {
+            throw new IllegalArgumentException("This SOP has no uploaded document.");
+        }
+
+        try {
+            Resource resource = storageService.loadFileAsResource(metadata.getStorageReference());
+            String filename = metadata.getOriginalFileName() == null
+                    ? ""
+                    : metadata.getOriginalFileName().toLowerCase(Locale.ROOT);
+            try (InputStream input = resource.getInputStream()) {
+                if (filename.endsWith(".pdf")) {
+                    try (var document = Loader.loadPDF(input.readAllBytes())) {
+                        return new PDFTextStripper().getText(document).trim();
+                    }
+                }
+                if (filename.endsWith(".docx")) {
+                    try (XWPFDocument document = new XWPFDocument(input);
+                         XWPFWordExtractor extractor = new XWPFWordExtractor(document)) {
+                        return extractor.getText().trim();
+                    }
+                }
+                return new String(input.readAllBytes(), StandardCharsets.UTF_8).trim();
+            }
+        } catch (Exception exception) {
+            log.warn("Could not extract SOP document text for {}", id, exception);
+            throw new IllegalStateException("Could not extract text from the uploaded SOP document.", exception);
+        }
     }
 
     public SOPResponse updateSOP(String id, UpdateSOPRequest request, User currentUser) {

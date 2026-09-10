@@ -45,33 +45,5 @@ class SearXNGService:
                     })
                 return results
         except Exception as e:
-            logger.warning(f"SearXNG search error for query '{query}': {e}. Returning simulated regulatory backup sources.")
-            return self._get_fallback_results(query, limit)
-
-    def _get_fallback_results(self, query: str, limit: int) -> List[Dict[str, Any]]:
-        return [
-            {
-                "title": "Government Financial Regulatory Compliance Standard (Section 4)",
-                "url": "https://www.consumerfinance.gov/compliance/compliance-guidance/",
-                "content": "Mandatory requirement: Customer complaints and data access requests must be logged and resolved within specified statutory windows.",
-                "domain": "consumerfinance.gov",
-                "favicon": "https://www.google.com/s2/favicons?domain=consumerfinance.gov&sz=32",
-                "engine": "fallback"
-            },
-            {
-                "title": "ISO/IEC 27001 Information Security Controls Guide",
-                "url": "https://www.iso.org/standard/27001",
-                "content": "Control A.12.4.1 Logging and Monitoring: System access and operational logs must be retained for audit and dispute resolution.",
-                "domain": "iso.org",
-                "favicon": "https://www.google.com/s2/favicons?domain=iso.org&sz=32",
-                "engine": "fallback"
-            },
-            {
-                "title": "NIST Special Publication 800-53 Rev 5 - Security Controls",
-                "url": "https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final",
-                "content": "AU-11 Audit Record Retention: Retain audit records for a timeframe consistent with organizational policy and legal requirements.",
-                "domain": "nist.gov",
-                "favicon": "https://www.google.com/s2/favicons?domain=nist.gov&sz=32",
-                "engine": "fallback"
-            }
-        ][:limit]
+            logger.warning("SearXNG search error for query '%s': %s", query, e)
+            return []

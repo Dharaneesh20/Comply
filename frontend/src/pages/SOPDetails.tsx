@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getSOPById, getSOPVersions, createSOPVersion, archiveSOP, submitSOPForReview, approveSOPVersion, activateSOPVersion } from '../api/sops';
+import { getSOPById, getSOPVersions, getSOPDocumentText, createSOPVersion, archiveSOP, submitSOPForReview, approveSOPVersion, activateSOPVersion } from '../api/sops';
 import { triggerSOPAIAnalysis, getSOPAIAnalyses, submitAIReview } from '../api/ai';
 import { AnalysisWorkspaceModal } from '../components/analysis/AnalysisWorkspaceModal';
 import { getRequirementsForSOP, deleteMapping } from '../api/mappings';
@@ -1117,7 +1117,11 @@ export const SOPDetails: React.FC = () => {
         isOpen={showAnalysisWorkspaceModal}
         onClose={() => setShowAnalysisWorkspaceModal(false)}
         sopTitle={sop?.title || 'Standard Operating Procedure'}
-        sopText={targetVersion?.changeSummary || sop?.description || 'All customer complaints must be recorded and logged within statutory timeframes.'}
+        sopText={sop?.description || ''}
+        loadDocumentText={async () => {
+          if (!currentOrganization || !id) return sop?.description || '';
+          return getSOPDocumentText(currentOrganization.id, id);
+        }}
         onComplete={() => fetchData()}
       />
     </div>

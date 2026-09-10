@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   CheckSquare,
   Building2,
+  Sparkles,
   Lock,
   GitBranch,
   ScrollText,
@@ -54,6 +55,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: '/regulatory-changes', label: 'Regulatory Changes', icon: <GitBranch size={16} /> },
       { to: '/organizations',      label: 'Organizations',     icon: <Building2 size={16} /> },
+      { to: '/organization-mode',  label: 'Organisation mode', icon: <Sparkles size={16} /> },
     ],
   },
   {

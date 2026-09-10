@@ -38,6 +38,35 @@ class StreamAnalysisRequest(BaseModel):
     text: str
     requirement_query: str = ""
 
+class OrganizationGuideRequest(BaseModel):
+    organization_name: str
+    industry: str = ""
+    size: str = ""
+    locations: str = ""
+    culture: str = ""
+    process: str = ""
+    existing_tools: str = ""
+    question: str = ""
+
+@app.post("/api/v1/organization/guide")
+async def organization_guide(request: OrganizationGuideRequest):
+    prompt = f'''You are an SOP design advisor. Use only the supplied organisation context. Help create practical, auditable SOPs and a healthy operating culture. Do not invent company facts or legal obligations.
+
+Organisation: {request.organization_name}
+Industry: {request.industry}
+Size: {request.size}
+Locations: {request.locations}
+Working culture: {request.culture}
+Process to document: {request.process}
+Tools/systems: {request.existing_tools}
+User question: {request.question or 'What information is still needed before drafting this SOP?'}
+
+Return JSON exactly as {{"answer":"clear helpful response", "next_questions":["short question"], "sop_outline":["section title"]}}.'''
+    try:
+        return await llm_provider.generate_json(prompt)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
 @app.get("/api/v1/models/status")
 async def get_model_status():
     return await llm_provider.check_model_status()

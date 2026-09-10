@@ -21,6 +21,7 @@ import { RegulatoryChangeDetails } from './pages/RegulatoryChangeDetails';
 import { RemediationsList } from './pages/RemediationsList';
 import { AuditTrail } from './pages/AuditTrail';
 import { SecuritySettings } from './pages/SecuritySettings';
+import { OrganizationMode } from './pages/OrganizationMode';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -88,6 +89,7 @@ const AppRoutes: React.FC = () => {
       {/* Protected */}
       <Route path="/dashboard"                element={withLayout(<Dashboard healthState={healthState} healthData={healthData} lastChecked={lastChecked} />)} />
       <Route path="/organizations"            element={withLayout(<OrganizationsPage />)} />
+      <Route path="/organization-mode"         element={withLayout(<OrganizationMode />)} />
       <Route path="/sops"                     element={withLayout(<SOPsList />)} />
       <Route path="/sops/new"                 element={withLayout(<CreateSOP />)} />
       <Route path="/sops/:id"                 element={withLayout(<SOPDetails />)} />

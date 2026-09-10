@@ -5,55 +5,52 @@ tags:
 - feature-extraction
 - dense
 - generated_from_trainer
-- dataset_size:500
+- dataset_size:1000
 - loss:MultipleNegativesRankingLoss
 base_model: sentence-transformers/all-MiniLM-L6-v2
 widget:
 - source_sentence: regulatory regulation
   sentences:
-  - The new legal document outlines stringent regulatory regulations aimed at enhancing
-    compliance within the financial sector.
   - The legal team reviewed the contractual amendment to ensure all terms were clearly
     defined and mutually agreed upon before finalizing the document.
-  - The legal team conducted a thorough regulatory compliance evaluation of the new
-    contract, ensuring all clauses adhered to current laws and industry standards.
+  - The new legal document outlines stringent regulatory regulations aimed at enhancing
+    compliance within the financial sector.
+  - In the legal document, the contractual provision stipulates that any disputes
+    arising from the agreement must be resolved through arbitration.
 - source_sentence: legal condition
   sentences:
-  - The legal document outlines the stringent regulatory oversight required for financial
-    institutions to ensure compliance with federal laws and prevent fraudulent activities.
-  - The legal team conducted a thorough regulatory compliance evaluation of the new
-    contract, ensuring all clauses adhered to current laws and industry standards.
   - The contract stipulates that the legal condition for the transfer of ownership
     is the full payment of the purchase price by the buyer.
+  - The legal team conducted a thorough regulatory compliance evaluation of the new
+    contract, ensuring all clauses adhered to current laws and industry standards.
+  - The legal team conducted a thorough regulatory compliance evaluation of the new
+    contract, ensuring all clauses adhered to current laws and industry standards.
 - source_sentence: legal action
   sentences:
-  - The legal department conducted a thorough regulatory compliance evaluation of
-    the new contract, ensuring all clauses adhered to current laws and industry standards.
+  - The legal team conducted a thorough regulatory compliance evaluation of the new
+    contract, ensuring all clauses adhered to current laws and industry standards.
   - The plaintiff filed a legal action against the defendant for breach of contract,
     as outlined in the legal documents submitted to the court.
+  - The legal team conducted a thorough regulatory compliance evaluation of the new
+    contract, ensuring all clauses adhered to current laws and industry standards.
+- source_sentence: legal clause
+  sentences:
+  - In the event of a breach of contract, the non-breaching party shall be entitled
+    to seek damages, injunctive relief, or both, as permitted by law.
   - The legal document outlines the regulatory conditions that must be met for the
     merger to proceed, ensuring compliance with antitrust laws and protecting consumer
     interests.
-- source_sentence: legal clause
-  sentences:
-  - The regulatory guideline issued by the Federal Trade Commission outlines the necessary
-    compliance measures for online businesses, emphasizing data protection and consumer
-    rights.
-  - In the event of a breach of contract, the non-breaching party shall be entitled
-    to seek damages, injunctive relief, or both, as permitted by law.
-  - In the legal document, Section 7 contains a regulatory clause that mandates all
-    parties to adhere to the environmental protection laws applicable in their respective
-    jurisdictions.
+  - The integration of blockchain technology in legal documents has revolutionized
+    the way contracts are executed and verified, ensuring transparency and security
+    in transactions.
 - source_sentence: contractual clause
   sentences:
+  - The legal department conducted a thorough regulatory compliance evaluation of
+    the new contract, ensuring all clauses adhered to current laws and industry standards.
+  - The legal document outlines the stringent regulatory oversight required for financial
+    institutions to ensure compliance with federal laws and prevent fraudulent activities.
   - In the legal document, the contractual clause stipulates that any disputes arising
     from the agreement shall be resolved through arbitration.
-  - The regulatory guideline issued by the Federal Trade Commission outlines the necessary
-    compliance measures for online businesses, emphasizing data protection and consumer
-    rights.
-  - The legal team conducted a thorough contractual obligation enforcement review
-    to ensure all parties adhered to the agreed terms and conditions outlined in the
-    contract.
 pipeline_tag: sentence-similarity
 library_name: sentence-transformers
 ---
@@ -110,7 +107,7 @@ model = SentenceTransformer("sentence_transformers_model_id")
 sentences = [
     'contractual clause',
     'In the legal document, the contractual clause stipulates that any disputes arising from the agreement shall be resolved through arbitration.',
-    'The regulatory guideline issued by the Federal Trade Commission outlines the necessary compliance measures for online businesses, emphasizing data protection and consumer rights.',
+    'The legal document outlines the stringent regulatory oversight required for financial institutions to ensure compliance with federal laws and prevent fraudulent activities.',
 ]
 embeddings = model.encode(sentences)
 print(embeddings.shape)
@@ -119,9 +116,9 @@ print(embeddings.shape)
 # Get the similarity scores for the embeddings
 similarities = model.similarity(embeddings, embeddings)
 print(similarities)
-# tensor([[1.0000, 0.7062, 0.1666],
-#         [0.7062, 1.0000, 0.2113],
-#         [0.1666, 0.2113, 1.0000]])
+# tensor([[1.0000, 0.7709, 0.1330],
+#         [0.7709, 1.0000, 0.1050],
+#         [0.1330, 0.1050, 1.0000]])
 ```
 <!--
 ### Direct Usage (Transformers)
@@ -165,20 +162,20 @@ You can finetune this model on your own dataset.
 
 #### Unnamed Dataset
 
-* Size: 500 training samples
+* Size: 1,000 training samples
 * Columns: <code>sentence_0</code> and <code>sentence_1</code>
 * Approximate statistics based on the first 100 samples:
   |          | sentence_0                                                                      | sentence_1                                                                          |
   |:---------|:--------------------------------------------------------------------------------|:------------------------------------------------------------------------------------|
   | type     | string                                                                          | string                                                                              |
   | modality | text                                                                            | text                                                                                |
-  | details  | <ul><li>min: 4 tokens</li><li>mean: 5.92 tokens</li><li>max: 9 tokens</li></ul> | <ul><li>min: 26 tokens</li><li>mean: 92.98 tokens</li><li>max: 207 tokens</li></ul> |
+  | details  | <ul><li>min: 4 tokens</li><li>mean: 5.94 tokens</li><li>max: 9 tokens</li></ul> | <ul><li>min: 29 tokens</li><li>mean: 96.93 tokens</li><li>max: 207 tokens</li></ul> |
 * Samples:
-  | sentence_0                                         | sentence_1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-  |:---------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | <code>regulatory compliance training</code>        | <code>Effective regulatory compliance training is crucial for organizations to ensure that their legal documents adhere to current laws and regulations. This training should cover the latest updates in legislation, best practices for document management, and the importance of maintaining accurate records. Employees should be educated on the potential consequences of non-compliance, including fines and legal action. Regular training sessions and workshops can help keep the team informed and prepared to handle any changes in regulatory requirements.</code>                                                                                                                                       |
-  | <code>regulatory compliance evaluation plan</code> | <code>The regulatory compliance evaluation plan is a critical document that outlines the procedures and standards for ensuring that an organization adheres to all relevant laws and regulations. This plan includes a detailed analysis of the legal requirements, identification of potential risks, and the establishment of internal controls to mitigate those risks. It also involves regular audits and reviews to ensure ongoing compliance. The plan is a living document that must be updated regularly to reflect changes in the legal landscape and the organization's operations.</code>                                                                                                                  |
-  | <code>legal right</code>                           | <code>Understanding your legal rights is crucial when drafting or interpreting legal documents. A legal right is a privilege or power that is recognized and protected by law, allowing individuals to act or claim something. In legal documents, such as contracts or wills, clearly defining the legal rights of each party involved is essential to ensure that all parties understand their obligations and entitlements. For example, in a contract, the legal rights of both the buyer and the seller must be explicitly stated to avoid any future disputes. Similarly, in a will, the legal rights of the beneficiaries must be clearly outlined to prevent any challenges to the document's validity.</code> |
+  | sentence_0                                         | sentence_1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+  |:---------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | <code>regulatory enforcement action plan</code>    | <code>The regulatory enforcement action plan outlines the steps and measures to be taken by the agency in response to non-compliance with established regulations. This document serves as a comprehensive guide for legal officers and enforcement personnel, detailing the procedures for investigation, notification, and penalty imposition. It emphasizes the importance of due process, transparency, and the protection of stakeholders' rights throughout the enforcement process.</code>                                                                    |
+  | <code>regulatory enforcement strategy</code>       | <code>The legal document outlines a comprehensive regulatory enforcement strategy designed to ensure compliance with environmental protection laws. It details the procedures for monitoring, reporting, and penalizing violations, emphasizing a proactive approach to deterrence and remediation.</code>                                                                                                                                                                                                                                                           |
+  | <code>regulatory policy implementation plan</code> | <code>The regulatory policy implementation plan outlines the steps and procedures required to enforce new regulations within the legal framework. This document serves as a comprehensive guide for government agencies and stakeholders involved in the regulatory process. It includes timelines, resource allocation, stakeholder engagement strategies, and compliance monitoring mechanisms. The plan ensures that all parties are aligned with the regulatory objectives and understand their roles and responsibilities in the implementation process.</code> |
 * Loss: [<code>MultipleNegativesRankingLoss</code>](https://sbert.net/docs/package_reference/sentence_transformer/losses.html#multiplenegativesrankingloss) with these parameters:
   ```json
   {
@@ -198,7 +195,7 @@ You can finetune this model on your own dataset.
 #### Non-Default Hyperparameters
 
 - `per_device_train_batch_size`: 16
-- `num_train_epochs`: 1
+- `num_train_epochs`: 2
 - `per_device_eval_batch_size`: 16
 - `multi_dataset_batch_sampler`: round_robin
 
@@ -206,7 +203,7 @@ You can finetune this model on your own dataset.
 <details><summary>Click to expand</summary>
 
 - `per_device_train_batch_size`: 16
-- `num_train_epochs`: 1
+- `num_train_epochs`: 2
 - `max_steps`: -1
 - `learning_rate`: 5e-05
 - `lr_scheduler_type`: linear
@@ -310,7 +307,7 @@ You can finetune this model on your own dataset.
 </details>
 
 ### Training Time
-- **Training**: 25.4 seconds
+- **Training**: 1.8 minutes
 
 ### Framework Versions
 - Python: 3.12.10

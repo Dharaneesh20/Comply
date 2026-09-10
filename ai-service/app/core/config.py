@@ -7,8 +7,9 @@ class Settings(BaseSettings):
     
     # LM Studio configuration
     LM_STUDIO_BASE_URL: str = os.getenv("LM_STUDIO_BASE_URL", "http://127.0.0.1:1234/v1")
-    LM_STUDIO_MODEL: str = os.getenv("LM_STUDIO_MODEL", "qwen/qwen3.5-9b")
-    LM_STUDIO_TIMEOUT: float = float(os.getenv("LM_STUDIO_TIMEOUT", "30.0"))
+    # When empty, use the first model exposed by LM Studio's OpenAI-compatible API.
+    LM_STUDIO_MODEL: str = os.getenv("LM_STUDIO_MODEL", "")
+    LM_STUDIO_TIMEOUT: float = float(os.getenv("LM_STUDIO_TIMEOUT", "120.0"))
     
     # SearXNG Configuration
     SEARXNG_URL: str = os.getenv("SEARXNG_URL", "http://localhost:8080")

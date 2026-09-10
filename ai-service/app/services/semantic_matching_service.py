@@ -33,10 +33,15 @@ class SemanticMatchingService:
     def find_candidates(self, requirement_text: str, sop_chunks: List[DocumentChunk], top_k: int = 5) -> List[MatchCandidate]:
         if not sop_chunks:
             return []
+        if not requirement_text.strip():
+            raise ValueError("A regulatory requirement is required for semantic matching")
 
-        req_embedding = self.model.encode(requirement_text, convert_to_numpy=True)
-        chunk_texts = [c.text for c in sop_chunks]
-        chunk_embeddings = self.model.encode(chunk_texts, convert_to_numpy=True)
+        try:
+            req_embedding = self.model.encode(requirement_text, convert_to_numpy=True)
+            chunk_texts = [c.text for c in sop_chunks]
+            chunk_embeddings = self.model.encode(chunk_texts, convert_to_numpy=True)
+        except Exception as exc:
+            raise RuntimeError(f"Semantic model inference failed: {exc}") from exc
 
         candidates = []
         for i, chunk in enumerate(sop_chunks):

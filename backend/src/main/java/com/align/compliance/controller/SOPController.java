@@ -111,6 +111,14 @@ public class SOPController {
         return ResponseEntity.ok(versions);
     }
 
+    @GetMapping("/{id}/document-text")
+    @Operation(summary = "Extract SOP document text", description = "Converts the current PDF, DOCX, or TXT document into plain text for local AI analysis.")
+    public ResponseEntity<String> getDocumentText(
+            @PathVariable("id") String id,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(sopService.extractCurrentDocumentText(id, currentUser));
+    }
+
     @PostMapping("/{id}/archive")
     @Operation(summary = "Archive SOP", description = "Marks an SOP status as ARCHIVED.")
     public ResponseEntity<SOPResponse> archiveSOP(
