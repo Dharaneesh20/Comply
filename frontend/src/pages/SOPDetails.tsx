@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getSOPById, getSOPVersions, createSOPVersion, archiveSOP, submitSOPForReview, approveSOPVersion, activateSOPVersion } from '../api/sops';
 import { triggerSOPAIAnalysis, getSOPAIAnalyses, submitAIReview } from '../api/ai';
+import { AnalysisWorkspaceModal } from '../components/analysis/AnalysisWorkspaceModal';
 import { getRequirementsForSOP, deleteMapping } from '../api/mappings';
 import { getSOPHealth, analyzeSOPHealth, submitObservation } from '../api/sopHealth';
 import { SOP, SOPVersion } from '../types/sop';
@@ -102,14 +103,17 @@ export const SOPDetails: React.FC = () => {
     }
   };
 
+  const [showAnalysisWorkspaceModal, setShowAnalysisWorkspaceModal] = useState<boolean>(false);
+
   const handleRunAIAnalysis = async () => {
+    setShowAnalysisWorkspaceModal(true);
     if (!currentOrganization || !id) return;
     try {
       setAnalyzingAI(true);
       const newAnalysis = await triggerSOPAIAnalysis(currentOrganization.id, id);
       setAiAnalyses(prev => [newAnalysis, ...prev]);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to run AI compliance analysis.');
+      console.warn('Spring Boot AI analysis call fallback:', err);
     } finally {
       setAnalyzingAI(false);
     }
@@ -1107,6 +1111,15 @@ export const SOPDetails: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ALIGN AI ANALYSIS LIVE EXECUTION WORKSPACE MODAL */}
+      <AnalysisWorkspaceModal
+        isOpen={showAnalysisWorkspaceModal}
+        onClose={() => setShowAnalysisWorkspaceModal(false)}
+        sopTitle={sop?.title || 'Standard Operating Procedure'}
+        sopText={targetVersion?.changeSummary || sop?.description || 'All customer complaints must be recorded and logged within statutory timeframes.'}
+        onComplete={() => fetchData()}
+      />
     </div>
   );
 };

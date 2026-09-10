@@ -7,8 +7,11 @@ class Settings(BaseSettings):
     
     # LM Studio configuration
     LM_STUDIO_BASE_URL: str = os.getenv("LM_STUDIO_BASE_URL", "http://127.0.0.1:1234/v1")
-    LM_STUDIO_MODEL: str = os.getenv("LM_STUDIO_MODEL", "local-model")
+    LM_STUDIO_MODEL: str = os.getenv("LM_STUDIO_MODEL", "qwen/qwen3.5-9b")
     LM_STUDIO_TIMEOUT: float = float(os.getenv("LM_STUDIO_TIMEOUT", "30.0"))
+    
+    # SearXNG Configuration
+    SEARXNG_URL: str = os.getenv("SEARXNG_URL", "http://localhost:8080")
     
     # ML Model Configuration
     MODEL_NAME: str = "align-semantic-matcher"

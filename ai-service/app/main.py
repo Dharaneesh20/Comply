@@ -9,14 +9,49 @@ from app.services.document_analysis_service import DocumentAnalysisService
 from app.services.semantic_matching_service import SemanticMatchingService
 from app.llm.lm_studio_provider import LMStudioProvider
 
+from fastapi.responses import StreamingResponse
+from app.services.pipeline_stream_service import PipelineStreamService
+from pydantic import BaseModel
+
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title=settings.APP_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 document_service = DocumentAnalysisService()
 matching_service = SemanticMatchingService()
 llm_provider = LMStudioProvider()
+pipeline_stream_service = PipelineStreamService()
+
+class StreamAnalysisRequest(BaseModel):
+    document_title: str
+    text: str
+    requirement_query: str = ""
+
+@app.get("/api/v1/models/status")
+async def get_model_status():
+    return await llm_provider.check_model_status()
+
+@app.post("/api/v1/analyze/stream")
+async def analyze_stream(request: StreamAnalysisRequest):
+    return StreamingResponse(
+        pipeline_stream_service.execute_pipeline_stream(
+            document_title=request.document_title,
+            text=request.text,
+            requirement_query=request.requirement_query
+        ),
+        media_type="text/event-stream"
+    )
 
 @app.get("/api/v1/health")
 def health_check():
