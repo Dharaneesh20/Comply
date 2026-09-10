@@ -33,3 +33,6 @@ tmp/
 temp/
 backend/uploads/6aa24ee0f5d7815d513d9a55/sops/0fdf619c-5e66-4811-bdd8-4d14e6dae467.pdf
 backend/uploads/6aa24ee0f5d7815d513d9a55/sops/d388b587-8c70-4ffd-a595-ba54c2cdfb47.pdf
+backend/uploads/6aa2504be73479359c641efa/sops/71f3581f-e284-45a3-8b11-9775511448b9.pdf
+.gitignore
+backend/uploads/6aa2504be73479359c641efa/sops/75987ff4-ccae-4456-84b2-8816fab85997.pdf

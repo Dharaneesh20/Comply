@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getSOPById, getSOPVersions, createSOPVersion, archiveSOP } from '../api/sops';
+import { getRequirementsForSOP, deleteMapping } from '../api/mappings';
 import { SOP, SOPVersion } from '../types/sop';
+import { MappedRequirementDetailResponse, MappingType } from '../types/mapping';
 import { 
   FileText, 
   ArrowLeft, 
@@ -19,7 +21,11 @@ import {
   HardDrive, 
   Plus, 
   X, 
-  FileDown 
+  FileDown,
+  ShieldCheck,
+  Link2,
+  Trash2,
+  ExternalLink
 } from 'lucide-react';
 
 export const SOPDetails: React.FC = () => {
@@ -30,6 +36,8 @@ export const SOPDetails: React.FC = () => {
 
   const [sop, setSop] = useState<SOP | null>(null);
   const [versions, setVersions] = useState<SOPVersion[]>([]);
+  const [mappedRequirements, setMappedRequirements] = useState<MappedRequirementDetailResponse[]>([]);
+  
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,12 +56,14 @@ export const SOPDetails: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const [sopData, versionsData] = await Promise.all([
+      const [sopData, versionsData, reqsData] = await Promise.all([
         getSOPById(currentOrganization.id, id),
         getSOPVersions(currentOrganization.id, id),
+        getRequirementsForSOP(currentOrganization.id, id),
       ]);
       setSop(sopData);
       setVersions(versionsData.sort((a, b) => b.versionNumber - a.versionNumber));
+      setMappedRequirements(reqsData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load SOP details.');
     } finally {
@@ -81,7 +91,7 @@ export const SOPDetails: React.FC = () => {
       setShowVersionModal(false);
       setNewVersionFile(null);
       setChangeSummary('');
-      await fetchData(); // Refresh details & versions
+      await fetchData();
     } catch (err: any) {
       setVersionError(err.response?.data?.message || 'Failed to upload new version.');
     } finally {
@@ -101,6 +111,33 @@ export const SOPDetails: React.FC = () => {
       alert(err.response?.data?.message || 'Failed to archive SOP.');
     } finally {
       setArchiving(false);
+    }
+  };
+
+  const handleDeleteMapping = async (mappingId: string) => {
+    if (!currentOrganization) return;
+    if (!window.confirm('Are you sure you want to unmap this regulatory requirement?')) return;
+
+    try {
+      await deleteMapping(currentOrganization.id, mappingId);
+      await fetchData();
+    } catch (err: any) {
+      alert('Failed to delete mapping.');
+    }
+  };
+
+  const getMappingTypeBadge = (type: MappingType) => {
+    switch (type) {
+      case 'FULL':
+        return <span className="status-badge published">Full Coverage</span>;
+      case 'PARTIAL':
+        return <span className="status-badge draft">Partial</span>;
+      case 'NOT_IMPLEMENTED':
+        return <span className="status-badge offline">Not Implemented</span>;
+      case 'NOT_APPLICABLE':
+        return <span className="status-badge archived">N/A</span>;
+      default:
+        return <span className="status-badge">{type}</span>;
     }
   };
 
@@ -129,7 +166,7 @@ export const SOPDetails: React.FC = () => {
   const latestVersion = versions.length > 0 ? versions[0] : null;
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1150px', margin: '0 auto' }}>
       {/* Top Breadcrumb & Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <button className="btn btn-secondary" onClick={() => navigate('/sops')} style={{ padding: '0.4rem 0.85rem' }}>
@@ -225,6 +262,80 @@ export const SOPDetails: React.FC = () => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Applicable Regulatory Requirements Section */}
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div className="card-title" style={{ marginBottom: '1rem' }}>
+          <ShieldCheck size={20} color="var(--accent-indigo)" />
+          <span>Applicable Regulatory Requirements ({mappedRequirements.length})</span>
+        </div>
+
+        {mappedRequirements.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-secondary)' }}>
+            <Link2 size={36} style={{ opacity: 0.4, marginBottom: '0.75rem' }} />
+            <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>No Regulatory Requirements Mapped</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              To map a requirement clause to this SOP, navigate to the Regulations tab and select "Map Requirement to SOP".
+            </p>
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th>Section Clause</th>
+                  <th>Regulatory Framework</th>
+                  <th>Requirement Text</th>
+                  <th>Mapping Type</th>
+                  <th>Confidence</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mappedRequirements.map((req) => (
+                  <tr key={req.mappingId}>
+                    <td>
+                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+                        {req.sectionReference}
+                      </span>
+                    </td>
+                    <td>
+                      <div 
+                        onClick={() => navigate(`/regulations/${req.regulationId}`)}
+                        style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                      >
+                        <ShieldCheck size={15} color="var(--accent-blue)" />
+                        <span>{req.regulationTitle || 'Regulation Entry'}</span>
+                        <ExternalLink size={12} style={{ opacity: 0.6 }} />
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '380px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {req.requirementText}
+                      </div>
+                    </td>
+                    <td>{getMappingTypeBadge(req.mappingType)}</td>
+                    <td>
+                      <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-emerald)', fontWeight: 700 }}>
+                        {Math.round(req.confidence * 100)}%
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button 
+                        onClick={() => handleDeleteMapping(req.mappingId)}
+                        style={{ color: 'var(--accent-rose)', padding: '0.35rem', borderRadius: '4px' }}
+                        title="Unmap Requirement"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem' }}>
