@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getSOPById, getSOPVersions, createSOPVersion, archiveSOP } from '../api/sops';
+import { getSOPById, getSOPVersions, createSOPVersion, archiveSOP, submitSOPForReview, approveSOPVersion, activateSOPVersion } from '../api/sops';
 import { getRequirementsForSOP, deleteMapping } from '../api/mappings';
 import { getSOPHealth, analyzeSOPHealth, submitObservation } from '../api/sopHealth';
 import { SOP, SOPVersion } from '../types/sop';
@@ -65,6 +65,14 @@ export const SOPDetails: React.FC = () => {
 
   // Archive state
   const [archiving, setArchiving] = useState<boolean>(false);
+
+  // Workflow State Modals & Actions
+  const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
+  const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
+  const [targetVersion, setTargetVersion] = useState<SOPVersion | null>(null);
+  const [reviewNotes, setReviewNotes] = useState<string>('');
+  const [approvalNotes, setApprovalNotes] = useState<string>('');
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   const fetchData = async () => {
     if (!currentOrganization || !id) return;
@@ -164,6 +172,63 @@ export const SOPDetails: React.FC = () => {
       alert(err.response?.data?.message || 'Failed to archive SOP.');
     } finally {
       setArchiving(false);
+    }
+  };
+
+  const handleOpenReviewModal = (ver: SOPVersion) => {
+    setTargetVersion(ver);
+    setReviewNotes(`Submitting version ${ver.versionNumber} for compliance officer review.`);
+    setShowReviewModal(true);
+  };
+
+  const handleOpenApproveModal = (ver: SOPVersion) => {
+    setTargetVersion(ver);
+    setApprovalNotes(`Approving version ${ver.versionNumber} for active operational deployment.`);
+    setShowApproveModal(true);
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !targetVersion) return;
+    try {
+      setActionLoading(true);
+      await submitSOPForReview(id, targetVersion.versionNumber, reviewNotes);
+      setShowReviewModal(false);
+      await fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to submit SOP for review.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleApproveVersion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !targetVersion) return;
+    try {
+      setActionLoading(true);
+      await approveSOPVersion(id, targetVersion.versionNumber, approvalNotes);
+      setShowApproveModal(false);
+      await fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to approve SOP version.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleActivateVersion = async (ver: SOPVersion) => {
+    if (!id) return;
+    if (!window.confirm(`Activate Version ${ver.versionNumber}? This will make it the active SOP version and resolve any associated findings.`)) return;
+
+    try {
+      setActionLoading(true);
+      await activateSOPVersion(id, ver.versionNumber);
+      await fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to activate SOP version.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -460,9 +525,19 @@ export const SOPDetails: React.FC = () => {
                         <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
                           Version {ver.versionNumber}
                         </span>
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          fontWeight: 700, 
+                          padding: '0.15rem 0.5rem', 
+                          borderRadius: '4px',
+                          background: ver.workflowStatus === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : ver.workflowStatus === 'APPROVED' ? 'rgba(99, 102, 241, 0.15)' : ver.workflowStatus === 'IN_REVIEW' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+                          color: ver.workflowStatus === 'ACTIVE' ? 'var(--accent-emerald)' : ver.workflowStatus === 'APPROVED' ? '#a5b4fc' : ver.workflowStatus === 'IN_REVIEW' ? 'var(--accent-amber)' : 'var(--text-muted)'
+                        }}>
+                          {ver.workflowStatus || 'ACTIVE'}
+                        </span>
                         {ver.versionNumber === sop.currentVersion && (
                           <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)' }}>
-                            CURRENT
+                            CURRENT ACTIVE
                           </span>
                         )}
                       </div>
@@ -476,6 +551,45 @@ export const SOPDetails: React.FC = () => {
                         "{ver.changeSummary}"
                       </div>
                     )}
+
+                    {/* Version Workflow State Actions Stepper */}
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                      {(!ver.workflowStatus || ver.workflowStatus === 'DRAFT') && (
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', gap: '0.35rem' }}
+                          onClick={() => handleOpenReviewModal(ver)}
+                          disabled={actionLoading}
+                        >
+                          <Clock size={12} color="var(--accent-amber)" />
+                          <span>Submit for Review</span>
+                        </button>
+                      )}
+
+                      {ver.workflowStatus === 'IN_REVIEW' && (
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', gap: '0.35rem', borderColor: 'rgba(99, 102, 241, 0.4)' }}
+                          onClick={() => handleOpenApproveModal(ver)}
+                          disabled={actionLoading}
+                        >
+                          <ShieldCheck size={12} color="#a5b4fc" />
+                          <span>Approve Version</span>
+                        </button>
+                      )}
+
+                      {ver.workflowStatus === 'APPROVED' && (
+                        <button
+                          className="btn btn-primary"
+                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', gap: '0.35rem', background: 'var(--accent-emerald)' }}
+                          onClick={() => handleActivateVersion(ver)}
+                          disabled={actionLoading}
+                        >
+                          <CheckCircle2 size={12} />
+                          <span>Activate Version</span>
+                        </button>
+                      )}
+                    </div>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.78rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
                       <span>Filename: <strong style={{ color: 'var(--text-secondary)' }}>{ver.documentMetadata?.originalFilename}</strong></span>
@@ -811,6 +925,103 @@ export const SOPDetails: React.FC = () => {
                       <span>Run Operational Analysis</span>
                     </>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Submit for Review Modal */}
+      {showReviewModal && targetVersion && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Clock size={20} color="var(--accent-amber)" />
+                <span>Submit SOP Version {targetVersion.versionNumber} for Review</span>
+              </h3>
+              <button onClick={() => setShowReviewModal(false)} style={{ color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReview}>
+              <div className="form-group">
+                <label className="form-label">Review Submission Notes *</label>
+                <textarea
+                  className="form-textarea"
+                  rows={3}
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowReviewModal(false)}
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Submit for Review</span>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Approve SOP Version Modal */}
+      {showApproveModal && targetVersion && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ShieldCheck size={20} color="#a5b4fc" />
+                <span>Approve SOP Version {targetVersion.versionNumber}</span>
+              </h3>
+              <button onClick={() => setShowApproveModal(false)} style={{ color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleApproveVersion}>
+              <div className="form-group">
+                <label className="form-label">Approval Decision & Governance Notes *</label>
+                <textarea
+                  className="form-textarea"
+                  rows={3}
+                  value={approvalNotes}
+                  onChange={(e) => setApprovalNotes(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowApproveModal(false)}
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ background: '#6366f1' }}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Approve SOP Version</span>}
                 </button>
               </div>
             </form>

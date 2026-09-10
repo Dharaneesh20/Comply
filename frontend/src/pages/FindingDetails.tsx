@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getFindingById, updateFindingStatus } from '../api/findings';
+import { createRemediation } from '../api/remediations';
 import { FindingResponse, FindingStatus, FindingSeverity } from '../types/finding';
+import { RemediationPriority } from '../types/remediation';
 import { 
   ArrowLeft, 
   ShieldCheck, 
@@ -15,7 +17,9 @@ import {
   AlertCircle, 
   Info,
   Check,
-  XCircle
+  XCircle,
+  X,
+  ListTodo
 } from 'lucide-react';
 
 export const FindingDetails: React.FC = () => {
@@ -28,6 +32,15 @@ export const FindingDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
 
+  // Remediation Modal State
+  const [showRemediationModal, setShowRemediationModal] = useState<boolean>(false);
+  const [remTitle, setRemTitle] = useState<string>('');
+  const [remDescription, setRemDescription] = useState<string>('');
+  const [remAssignedTo, setRemAssignedTo] = useState<string>('');
+  const [remPriority, setRemPriority] = useState<RemediationPriority>('HIGH');
+  const [remDueDate, setRemDueDate] = useState<string>('');
+  const [creatingRemediation, setCreatingRemediation] = useState<boolean>(false);
+
   const fetchFindingDetail = async () => {
     if (!currentOrganization || !id) return;
     try {
@@ -35,10 +48,37 @@ export const FindingDetails: React.FC = () => {
       setError(null);
       const data = await getFindingById(currentOrganization.id, id);
       setFinding(data);
+      if (data) {
+        setRemTitle(`Remediation: ${data.title}`);
+        setRemDescription(`Address compliance gap found in requirement ${data.sectionReference || ''}: ${data.description}`);
+        setRemAssignedTo(data.assignedTo || 'compliance-officer@organization.com');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load finding details.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateRemediation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentOrganization || !id) return;
+    try {
+      setCreatingRemediation(true);
+      await createRemediation({
+        findingId: id,
+        title: remTitle,
+        description: remDescription,
+        assignedTo: remAssignedTo,
+        priority: remPriority,
+        dueDate: remDueDate || undefined,
+      });
+      setShowRemediationModal(false);
+      navigate('/remediations');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to create remediation task.');
+    } finally {
+      setCreatingRemediation(false);
     }
   };
 
@@ -127,6 +167,15 @@ export const FindingDetails: React.FC = () => {
 
         {/* Status Transition Action Buttons */}
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowRemediationModal(true)}
+            style={{ background: 'linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan))' }}
+          >
+            <ListTodo size={16} />
+            <span>Create Remediation Task</span>
+          </button>
+
           {finding.status === 'OPEN' && (
             <button
               className="btn btn-secondary"
@@ -336,6 +385,112 @@ export const FindingDetails: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Create Remediation Task Modal */}
+      {showRemediationModal && (
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '560px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ListTodo size={20} color="var(--accent-cyan)" />
+                <span>Create Remediation Action Task</span>
+              </h3>
+              <button onClick={() => setShowRemediationModal(false)} style={{ color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRemediation}>
+              <div className="form-group">
+                <label className="form-label">Task Title *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={remTitle}
+                  onChange={(e) => setRemTitle(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Description & Remediation Goal *</label>
+                <textarea
+                  className="form-textarea"
+                  rows={3}
+                  value={remDescription}
+                  onChange={(e) => setRemDescription(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Assigned Owner Email *</label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    value={remAssignedTo}
+                    onChange={(e) => setRemAssignedTo(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Priority Level *</label>
+                  <select
+                    className="form-input"
+                    value={remPriority}
+                    onChange={(e) => setRemPriority(e.target.value as RemediationPriority)}
+                  >
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Target Completion Due Date</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={remDueDate}
+                  onChange={(e) => setRemDueDate(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowRemediationModal(false)}
+                  disabled={creatingRemediation}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={creatingRemediation}
+                >
+                  {creatingRemediation ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Creating Task...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={16} />
+                      <span>Dispatch Remediation Task</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,10 +7,13 @@ export interface DocumentMetadata {
   checksumSha256?: string;
 }
 
+export type SOPVersionWorkflowStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'ACTIVE';
+
 export interface SOPVersion {
   id: string;
   sopId: string;
   versionNumber: number;
+  workflowStatus?: SOPVersionWorkflowStatus;
   documentMetadata: DocumentMetadata;
   storageReference: string;
   createdBy: string;

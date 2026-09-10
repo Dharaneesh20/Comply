@@ -6,7 +6,8 @@ import {
   ShieldCheck, 
   FileText, 
   GitBranch, 
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
 import { ConnectionState, HealthStatusResponse } from '../../types';
 import { HealthBadge } from '../HealthBadge';
@@ -80,6 +81,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ healthState, healthData }) => 
         >
           <AlertTriangle size={18} />
           <span>Findings</span>
+        </NavLink>
+
+        <NavLink 
+          to="/remediations" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+        >
+          <CheckCircle2 size={18} />
+          <span>Remediations</span>
         </NavLink>
       </nav>
 

@@ -16,6 +16,13 @@ import java.time.Instant;
 })
 public class SOPVersion {
 
+    public enum WorkflowStatus {
+        DRAFT,
+        IN_REVIEW,
+        APPROVED,
+        ACTIVE
+    }
+
     @Id
     private String id;
 
@@ -40,6 +47,9 @@ public class SOPVersion {
 
     @Field("change_summary")
     private String changeSummary;
+
+    @Field("workflow_status")
+    private WorkflowStatus workflowStatus = WorkflowStatus.ACTIVE;
 
     public SOPVersion() {
     }
@@ -116,5 +126,13 @@ public class SOPVersion {
 
     public void setChangeSummary(String changeSummary) {
         this.changeSummary = changeSummary;
+    }
+
+    public WorkflowStatus getWorkflowStatus() {
+        return workflowStatus;
+    }
+
+    public void setWorkflowStatus(WorkflowStatus workflowStatus) {
+        this.workflowStatus = workflowStatus;
     }
 }

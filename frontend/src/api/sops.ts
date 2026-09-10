@@ -105,3 +105,26 @@ export const getSOPMetrics = async (orgId: string): Promise<SOPMetricsResponse> 
   });
   return response.data;
 };
+
+export const submitSOPForReview = async (id: string, versionNumber: number, notes?: string): Promise<SOPVersion> => {
+  const response = await apiClient.post<SOPVersion>(`/api/v1/sops/${id}/review`, {
+    versionNumber,
+    notes,
+  });
+  return response.data;
+};
+
+export const approveSOPVersion = async (id: string, versionNumber: number, notes?: string): Promise<SOPVersion> => {
+  const response = await apiClient.post<SOPVersion>(`/api/v1/sops/${id}/approve`, {
+    versionNumber,
+    notes,
+  });
+  return response.data;
+};
+
+export const activateSOPVersion = async (id: string, versionNumber: number): Promise<SOP> => {
+  const response = await apiClient.post<SOP>(`/api/v1/sops/${id}/activate`, {
+    versionNumber,
+  });
+  return response.data;
+};
